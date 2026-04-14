@@ -127,8 +127,12 @@ function CrearInner() {
   const [showUpgrade, setShowUpgrade] = useState(false)
 
   // Text tab
-  const [activeTab, setActiveTab] = useState<'facebook' | 'instagram'>('facebook')
+  const [activeTab, setActiveTab] = useState<'facebook' | 'instagram'>('instagram')
   const [copied, setCopied] = useState(false)
+  const [copiedWhatsApp, setCopiedWhatsApp] = useState(false)
+
+  // Processing steps
+  const [processingStepIdx, setProcessingStepIdx] = useState(0)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -214,6 +218,14 @@ function CrearInner() {
     reader.readAsDataURL(file)
   }
 
+  // ── Processing steps ──────────────────────────────────────────────────────
+  const PROCESSING_STEPS = [
+    { emoji: '📸', text: 'Analizando la imagen...' },
+    { emoji: '🍷', text: 'Consultando al sommelier...' },
+    { emoji: '✍️', text: 'Redactando el texto del post...' },
+    { emoji: '🖼️', text: 'Buscando las mejores fotos...' },
+  ]
+
   // ── Process ────────────────────────────────────────────────────────────────
   const handleProcess = async () => {
     if (!session?.user?.email) { signIn('facebook'); return }
@@ -225,6 +237,12 @@ function CrearInner() {
 
     setStep('processing')
     setError('')
+    setProcessingStepIdx(0)
+
+    // Animar los pasos mientras espera la API
+    const stepInterval = setInterval(() => {
+      setProcessingStepIdx(prev => Math.min(prev + 1, PROCESSING_STEPS.length - 1))
+    }, 1800)
 
     try {
       const body: any = { rubroId, email: session.user.email }
@@ -260,11 +278,14 @@ function CrearInner() {
       const apiImages: string[] = (data.images || []).filter(Boolean)
       const resolvedImages = [...userPreviews, ...apiImages]
 
+      clearInterval(stepInterval)
+      setProcessingStepIdx(PROCESSING_STEPS.length - 1)
       setResult({ ...data, images: resolvedImages })
       setPhotoList(resolvedImages)
       setSelectedPhoto(resolvedImages[0] || '')
       setStep('result')
     } catch (err: any) {
+      clearInterval(stepInterval)
       setError(err.message)
       setStep('input')
     }
@@ -287,7 +308,7 @@ function CrearInner() {
 
     // ── Layout vinoteca: foto arriba (65%) + franja crema abajo (35%) ──
     if (isVino) {
-      const PHOTO_H = Math.round(H * 0.65)
+      const PHOTO_H = Math.round(H * 0.72)
       const TEXT_H  = H - PHOTO_H
 
       // Fondo crema para la zona de texto
@@ -545,16 +566,37 @@ function CrearInner() {
   // ─────────────────────────────────────────────────────────────────────────
   if (step === 'processing') {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-6 animate-bounce">{rubro.emoji}</div>
-          <p className="text-white text-xl font-bold mb-2">Analizando con IA...</p>
-          <p className="text-slate-400 text-sm">Generando tu post para {rubro.label}</p>
-          <div className="mt-8 flex gap-2 justify-center">
-            {[0,1,2].map(i => (
-              <div key={i} className="w-2 h-2 rounded-full bg-white animate-bounce"
-                style={{ animationDelay: `${i * 0.15}s` }} />
-            ))}
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-10">
+            <div className="text-5xl mb-3">{rubro.emoji}</div>
+            <p className="text-white text-xl font-black">Generando tu post...</p>
+          </div>
+          <div className="space-y-3">
+            {PROCESSING_STEPS.map((s, i) => {
+              const done = i < processingStepIdx
+              const active = i === processingStepIdx
+              return (
+                <div key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-500 ${
+                  done ? 'bg-white/10 opacity-50' :
+                  active ? 'bg-white/15 border border-white/20' :
+                  'opacity-20'
+                }`}>
+                  <span className="text-xl">{done ? '✅' : active ? s.emoji : '⏳'}</span>
+                  <span className={`text-sm font-semibold ${active ? 'text-white' : 'text-slate-400'}`}>
+                    {s.text}
+                  </span>
+                  {active && (
+                    <div className="ml-auto flex gap-1">
+                      {[0,1,2].map(j => (
+                        <div key={j} className="w-1.5 h-1.5 rounded-full bg-white animate-bounce"
+                          style={{ animationDelay: `${j * 0.15}s` }} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -578,8 +620,8 @@ function CrearInner() {
           {rubroId === 'vinoteca' ? (
             /* ── Vinoteca: layout split foto + franja crema ── */
             <div className="w-full rounded-2xl overflow-hidden shadow-2xl mb-4 bg-[#FFFDF7]" style={{ aspectRatio: '1/1' }}>
-              {/* Foto superior 65% */}
-              <div className="relative w-full" style={{ height: '65%' }}>
+              {/* Foto superior 72% */}
+              <div className="relative w-full" style={{ height: '72%' }}>
                 {selectedPhoto && (
                   <img src={selectedPhoto} alt="foto"
                     className="absolute inset-0 w-full h-full object-cover"
@@ -596,7 +638,7 @@ function CrearInner() {
               </div>
               {/* Franja crema 35%: marca + info */}
               <div className="flex flex-col items-center justify-center px-4 pt-3 pb-4"
-                style={{ height: '35%', fontFamily: overlayFont }}>
+                style={{ height: '28%', fontFamily: overlayFont }}>
                 <p className="font-black text-gray-900 leading-tight text-center break-words w-full"
                   style={{ fontSize: 'clamp(18px, 6vw, 38px)' }}>
                   {result?.line1?.toUpperCase()}
@@ -738,83 +780,115 @@ function CrearInner() {
   // RESULT STEP
   // ─────────────────────────────────────────────────────────────────────────
   if (step === 'result' && result) {
+    const shareText = activeTab === 'facebook' ? result.textFacebook : result.textInstagram
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`
+
+    const copyShareText = async () => {
+      await navigator.clipboard.writeText(shareText)
+      setCopied(true); setTimeout(() => setCopied(false), 2000)
+    }
+    const copyWhatsApp = async () => {
+      await navigator.clipboard.writeText(shareText)
+      setCopiedWhatsApp(true); setTimeout(() => setCopiedWhatsApp(false), 2000)
+    }
+
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center p-4">
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center p-4 pb-8">
         <div className="w-full max-w-lg">
-          <div className="flex items-center justify-between pt-4 mb-6">
+
+          {/* Header */}
+          <div className="flex items-center justify-between pt-4 mb-4">
             <button onClick={() => setStep('input')} className="text-slate-400 hover:text-white transition text-sm">← Nuevo post</button>
-            <span className="text-slate-400 text-sm">{rubro.emoji} {rubro.label}</span>
+            <span className="text-xs text-slate-500">{rubro.emoji} {rubro.label}</span>
           </div>
 
-          {/* Detected info */}
-          <div className="bg-white/10 rounded-2xl p-4 mb-4">
-            <div className="flex items-start gap-3">
-              <span className="text-3xl">{rubro.emoji}</span>
+          {/* ── Card principal: marca + info ── */}
+          <div className="bg-white rounded-2xl p-5 mb-3 shadow-lg"
+            style={{ fontFamily: rubroId === 'vinoteca' ? overlayFont : undefined }}>
+            <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-white font-bold text-lg leading-tight break-words"
-                  style={{ fontFamily: rubroId === 'vinoteca' ? overlayFont : undefined }}>
+                <p className="text-gray-900 font-black text-2xl leading-tight break-words">
                   {result.line1}
                 </p>
-                {result.line2 && <p className="text-slate-300 text-sm mt-0.5"
-                  style={{ fontStyle: rubroId === 'vinoteca' ? 'italic' : 'normal' }}>
-                  {result.line2}
-                </p>}
+                {result.line2 && (
+                  <p className="text-gray-500 text-sm mt-1 italic">{result.line2}</p>
+                )}
                 {result.badge && (
-                  <span className="inline-block bg-white/20 text-white text-xs px-2 py-0.5 rounded-full mt-1">{result.badge}</span>
+                  <p className="text-purple-600 font-bold text-base mt-1">{result.badge}</p>
                 )}
               </div>
+              <button onClick={() => setStep('preview')}
+                className="shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition">
+                🖼️ Ver imagen
+              </button>
             </div>
           </div>
 
-          {/* Secciones estructuradas vinoteca: enólogo + historia + CTA */}
+          {/* ── Enólogo + Historia (vinoteca) ── */}
           {rubroId === 'vinoteca' && (result.enologist || result.story) && (
-            <div className="space-y-3 mb-4">
+            <div className="space-y-2 mb-3">
               {result.enologist && (
-                <div className="bg-purple-900/30 border border-purple-500/20 rounded-2xl p-4">
-                  <p className="text-purple-300 text-xs font-bold uppercase tracking-widest mb-2">🍷 Notas del enólogo</p>
+                <div className="bg-purple-950/60 border border-purple-500/20 rounded-2xl px-4 py-3">
+                  <p className="text-purple-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">🍷 Notas del enólogo</p>
                   <p className="text-slate-200 text-sm leading-relaxed">{result.enologist}</p>
                 </div>
               )}
               {result.story && (
-                <div className="bg-rose-900/20 border border-rose-500/20 rounded-2xl p-4">
-                  <p className="text-rose-300 text-xs font-bold uppercase tracking-widest mb-2">✨ Historia y maridaje</p>
+                <div className="bg-rose-950/40 border border-rose-500/20 rounded-2xl px-4 py-3">
+                  <p className="text-rose-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">✨ Historia y maridaje</p>
                   <p className="text-slate-200 text-sm leading-relaxed">{result.story}</p>
-                </div>
-              )}
-              {result.cta && (
-                <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-center">
-                  <p className="text-slate-300 text-sm font-medium">{result.cta}</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Text tabs */}
-          <div className="bg-white/10 rounded-2xl p-4 mb-4">
-            <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">Texto para copiar</p>
-            <div className="flex gap-2 mb-3">
-              {(['facebook', 'instagram'] as const).map(tab => (
+          {/* ── Texto para copiar ── */}
+          <div className="bg-white/8 border border-white/10 rounded-2xl overflow-hidden mb-3">
+            {/* Tabs */}
+            <div className="flex border-b border-white/10">
+              {(['instagram', 'facebook'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-bold transition ${activeTab === tab ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+                  className={`flex-1 py-3 text-sm font-bold transition ${
+                    activeTab === tab
+                      ? 'bg-white/15 text-white border-b-2 border-white'
+                      : 'text-slate-500 hover:text-slate-300'
+                  }`}>
                   {tab === 'facebook' ? '👍 Facebook' : '📸 Instagram'}
                 </button>
               ))}
             </div>
-            <div className="bg-black/30 rounded-xl p-3 relative">
-              <p className="text-white text-sm leading-relaxed whitespace-pre-wrap">
-                {activeTab === 'facebook' ? result.textFacebook : result.textInstagram}
+            {/* Texto */}
+            <div className="p-4">
+              <p className="text-white text-sm leading-relaxed whitespace-pre-wrap mb-3">
+                {shareText}
               </p>
-              <button onClick={copyText}
-                className="absolute top-2 right-2 text-xs text-slate-400 hover:text-white bg-white/10 px-2 py-1 rounded-lg transition">
-                {copied ? '✅ Copiado' : '📋 Copiar'}
+              <button onClick={copyShareText}
+                className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition">
+                {copied ? '✅ ¡Copiado!' : '📋 Copiar texto'}
               </button>
             </div>
           </div>
 
-          <button onClick={() => setStep('preview')}
-            className={`w-full bg-gradient-to-r ${rubro.color} text-white font-bold py-4 rounded-2xl text-lg transition active:scale-95 shadow-lg`}>
-            🖼️ Armar imagen del post →
-          </button>
+          {/* ── Botones de compartir ── */}
+          <div className="space-y-2">
+            <button onClick={copyShareText}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+              👍 Publicar en Facebook
+            </button>
+            <button onClick={copyShareText}
+              className="w-full text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
+              📸 Publicar en Instagram
+            </button>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+              💬 Compartir por WhatsApp
+            </a>
+          </div>
+
+          <p className="text-center text-slate-600 text-xs mt-3">
+            Los botones copian el texto — pegalo en la app y adjuntá la imagen
+          </p>
         </div>
       </div>
     )
@@ -834,7 +908,7 @@ function CrearInner() {
           <div className="flex items-center gap-2">
             {session?.user ? (
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 text-xs truncate max-w-[140px]">{session.user.email || session.user.name}</span>
+                <span className="text-slate-400 text-xs truncate max-w-[140px]">{session.user.name || session.user.email}</span>
                 <button onClick={() => signOut()} className="text-slate-500 text-xs hover:text-white transition">Salir</button>
               </div>
             ) : (
