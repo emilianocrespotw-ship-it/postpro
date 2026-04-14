@@ -836,9 +836,31 @@ function CrearInner() {
             </div>
           )}
 
-          <button onClick={shareImage}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl text-lg transition active:scale-95 shadow-lg">
-            📲 Continuar →
+          {/* ── Botones de compartir ── */}
+          <div className="space-y-2 mb-3">
+            <button onClick={shareImage}
+              className="w-full bg-[#1877F2] hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+              👍 Publicá en Facebook
+            </button>
+            <button onClick={shareImage}
+              className="w-full text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
+              style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
+              📸 Publicá en Instagram
+            </button>
+            <a href={`https://wa.me/?text=${encodeURIComponent(result?.textInstagram || result?.textFacebook || '')}`}
+              target="_blank" rel="noopener noreferrer"
+              className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+              💬 Compartí por WhatsApp
+            </a>
+          </div>
+
+          <p className="text-center text-gray-400 text-xs mb-4">
+            FB e IG: la imagen se descarga y el texto se copia — pegalo en la app junto con la foto
+          </p>
+
+          <button onClick={() => setStep('input')}
+            className="w-full text-center text-gray-400 text-sm hover:text-gray-600 transition py-2">
+            Empezar de nuevo
           </button>
 
           <StepGrid currentStep="preview" />
@@ -1003,15 +1025,17 @@ function CrearInner() {
           </div>
         </div>
 
-        {/* Title card */}
-        <div className="bg-white rounded-2xl p-6 mb-4 text-center shadow-sm border border-gray-100">
-          <span className="text-5xl block mb-2">{rubro.emoji}</span>
-          <h1 className="text-2xl font-black text-gray-900">{rubro.ctaText}</h1>
-          <p className="text-gray-500 text-sm mt-2">{rubro.description}</p>
+        {/* Title — compacto */}
+        <div className="flex items-center gap-3 mb-4 px-1">
+          <span className="text-3xl">{rubro.emoji}</span>
+          <div>
+            <h1 className="text-lg font-black text-gray-900 leading-tight">{rubro.ctaText}</h1>
+            <p className="text-gray-400 text-xs">{rubro.description}</p>
+          </div>
           {rubroId === 'vinoteca' && (
             <button onClick={() => router.push('/biblioteca')}
-              className="mt-3 text-orange-500 hover:text-orange-600 text-xs font-semibold underline transition">
-              📚 Ver mi biblioteca de vinos
+              className="ml-auto text-orange-500 hover:text-orange-600 text-xs font-semibold whitespace-nowrap transition">
+              📚 Biblioteca
             </button>
           )}
         </div>
