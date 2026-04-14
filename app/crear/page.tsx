@@ -40,6 +40,81 @@ const RUBRO_FONT: Record<string, string> = {
   gastronomia:  'Inter, system-ui, sans-serif',
 }
 
+// ─── Processing steps (module-level constant) ────────────────────────────────
+const PROCESSING_STEPS = [
+  { emoji: '📸', text: 'Analizando la imagen...' },
+  { emoji: '🍷', text: 'Consultando al sommelier...' },
+  { emoji: '✍️', text: 'Redactando el texto del post...' },
+  { emoji: '🖼️', text: 'Buscando las mejores fotos...' },
+]
+
+// ─── StepGrid Component ──────────────────────────────────────────────────────
+function StepGrid({ currentStep }: { currentStep: 'input' | 'processing' | 'result' | 'preview' }) {
+  const steps = [
+    { number: 1, emoji: '📷', label: 'Subís la foto' },
+    { number: 2, emoji: '🤖', label: 'IA escribe el post' },
+    { number: 3, emoji: '🖼️', label: 'Elegí la foto' },
+    { number: 4, emoji: '📲', label: 'Publicalo' },
+  ]
+
+  // Determine which steps are completed, active, pending
+  const stepStates: Record<'input' | 'processing' | 'result' | 'preview', number[]> = {
+    'input': [],           // no steps completed
+    'processing': [1],     // step 1 done, step 2 active
+    'result': [1, 2],      // steps 1,2 done, step 3 active
+    'preview': [1, 2, 3],  // steps 1,2,3 done, step 4 active
+  }
+
+  const completedSteps = stepStates[currentStep]
+  const activeStepNum = currentStep === 'input' ? 1 : currentStep === 'processing' ? 2 : currentStep === 'result' ? 3 : 4
+
+  return (
+    <div className="grid grid-cols-2 gap-3 mt-8">
+      {steps.map(step => {
+        const isCompleted = completedSteps.includes(step.number)
+        const isActive = step.number === activeStepNum
+        const isPending = step.number > activeStepNum
+
+        let bgClass = ''
+        let borderClass = ''
+        let textClass = ''
+        let checkmark = ''
+
+        if (isCompleted) {
+          bgClass = 'bg-green-50'
+          borderClass = 'border-green-200'
+          textClass = 'text-green-700'
+          checkmark = '✓'
+        } else if (isActive) {
+          bgClass = 'bg-white'
+          borderClass = 'border-gray-200 shadow-sm'
+          textClass = 'text-gray-900 font-bold'
+          checkmark = ''
+        } else {
+          bgClass = 'bg-gray-50'
+          borderClass = 'border-gray-100'
+          textClass = 'text-gray-400'
+          checkmark = ''
+        }
+
+        return (
+          <div
+            key={step.number}
+            className={`${bgClass} border ${borderClass} rounded-2xl p-4 text-center transition-all ${
+              isCompleted ? '' : isActive ? '' : ''
+            }`}
+          >
+            <div className="text-2xl mb-2">
+              {isCompleted ? checkmark : step.emoji}
+            </div>
+            <p className={`text-xs font-semibold ${textClass}`}>{step.label}</p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Filter presets ───────────────────────────────────────────────────────────
 const FILTERS = [
   { id: 'none',      label: 'Original',  css: 'none' },
@@ -217,14 +292,6 @@ function CrearInner() {
     }
     reader.readAsDataURL(file)
   }
-
-  // ── Processing steps ──────────────────────────────────────────────────────
-  const PROCESSING_STEPS = [
-    { emoji: '📸', text: 'Analizando la imagen...' },
-    { emoji: '🍷', text: 'Consultando al sommelier...' },
-    { emoji: '✍️', text: 'Redactando el texto del post...' },
-    { emoji: '🖼️', text: 'Buscando las mejores fotos...' },
-  ]
 
   // ── Process ────────────────────────────────────────────────────────────────
   const handleProcess = async () => {
@@ -566,30 +633,30 @@ function CrearInner() {
   // ─────────────────────────────────────────────────────────────────────────
   if (step === 'processing') {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-10">
+      <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center p-4">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-10 pt-8">
             <div className="text-5xl mb-3">{rubro.emoji}</div>
-            <p className="text-white text-xl font-black">Generando tu post...</p>
+            <p className="text-gray-900 text-xl font-black">Generando tu post...</p>
           </div>
           <div className="space-y-3">
             {PROCESSING_STEPS.map((s, i) => {
               const done = i < processingStepIdx
               const active = i === processingStepIdx
               return (
-                <div key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-500 ${
-                  done ? 'bg-white/10 opacity-50' :
-                  active ? 'bg-white/15 border border-white/20' :
-                  'opacity-20'
+                <div key={i} className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-500 ${
+                  done ? 'bg-green-50 border-green-200 opacity-75' :
+                  active ? 'bg-white border-gray-200 shadow-sm' :
+                  'bg-gray-50 border-gray-100 opacity-60'
                 }`}>
                   <span className="text-xl">{done ? '✅' : active ? s.emoji : '⏳'}</span>
-                  <span className={`text-sm font-semibold ${active ? 'text-white' : 'text-slate-400'}`}>
+                  <span className={`text-sm font-semibold ${done ? 'text-green-700' : active ? 'text-gray-900' : 'text-gray-400'}`}>
                     {s.text}
                   </span>
                   {active && (
                     <div className="ml-auto flex gap-1">
                       {[0,1,2].map(j => (
-                        <div key={j} className="w-1.5 h-1.5 rounded-full bg-white animate-bounce"
+                        <div key={j} className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-bounce"
                           style={{ animationDelay: `${j * 0.15}s` }} />
                       ))}
                     </div>
@@ -598,6 +665,8 @@ function CrearInner() {
               )
             })}
           </div>
+
+          <StepGrid currentStep="processing" />
         </div>
       </div>
     )
@@ -608,12 +677,12 @@ function CrearInner() {
   // ─────────────────────────────────────────────────────────────────────────
   if (step === 'preview') {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center p-4">
+      <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center p-4">
         <canvas ref={canvasRef} className="hidden" />
         <div className="w-full max-w-lg">
           <div className="flex items-center gap-3 mb-6 pt-4">
-            <button onClick={() => setStep('result')} className="text-slate-400 hover:text-white transition text-sm">← Volver</button>
-            <span className="text-white font-bold text-lg">Vista previa</span>
+            <button onClick={() => setStep('result')} className="text-gray-500 hover:text-gray-700 transition text-sm">← Volver</button>
+            <span className="text-gray-900 font-bold text-lg">Vista previa</span>
           </div>
 
           {/* Live preview */}
@@ -692,14 +761,14 @@ function CrearInner() {
           )}
 
           {/* Controls */}
-          <div className="bg-white/10 rounded-2xl p-4 mb-4 space-y-4">
+          <div className="bg-white rounded-2xl p-4 mb-4 space-y-4 border border-gray-100 shadow-sm">
             {/* Filtros */}
             <div>
-              <p className="text-slate-300 text-xs font-semibold uppercase tracking-wider mb-2">Filtro</p>
+              <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Filtro</p>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {FILTERS.map(f => (
                   <button key={f.id} onClick={() => setSelectedFilter(f.id)}
-                    className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${selectedFilter === f.id ? 'bg-white text-slate-900' : 'bg-white/20 text-white hover:bg-white/30'}`}>
+                    className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${selectedFilter === f.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
                     {f.label}
                   </button>
                 ))}
@@ -708,9 +777,9 @@ function CrearInner() {
 
             {/* Logo toggle */}
             <div className="flex items-center justify-between">
-              <span className="text-slate-300 text-sm">Mostrar logo</span>
+              <span className="text-gray-700 text-sm">Mostrar logo</span>
               <button onClick={() => setShowLogo(v => !v)}
-                className={`w-12 h-6 rounded-full transition-colors ${showLogo ? 'bg-green-500' : 'bg-slate-600'}`}>
+                className={`w-12 h-6 rounded-full transition-colors ${showLogo ? 'bg-green-500' : 'bg-gray-300'}`}>
                 <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${showLogo ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
             </div>
@@ -719,7 +788,7 @@ function CrearInner() {
             <div className="flex items-center gap-3">
               {agencyLogo && <img src={agencyLogo} alt="logo" className="h-8 object-contain" />}
               <button onClick={() => logoInputRef.current?.click()}
-                className="text-slate-400 text-sm hover:text-white transition underline">
+                className="text-gray-500 text-sm hover:text-gray-700 transition underline">
                 {agencyLogo ? 'Cambiar logo' : 'Subir logo'}
               </button>
               <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
@@ -730,8 +799,8 @@ function CrearInner() {
           {photoList.length > 0 && (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-slate-300 text-xs font-semibold uppercase tracking-wider">Elegí la foto</p>
-                <p className="text-slate-500 text-xs">Tocá ✕ para sacar las que no te gustan</p>
+                <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Elegí la foto</p>
+                <p className="text-gray-400 text-xs">Tocá ✕ para sacar las que no te gustan</p>
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {photoList.map((url, i) => {
@@ -741,7 +810,7 @@ function CrearInner() {
                   return (
                     <div key={i} className="relative aspect-square">
                       <button onClick={() => setSelectedPhoto(url)}
-                        className={`w-full h-full rounded-xl overflow-hidden border-2 transition block ${isSelected ? 'border-white' : 'border-transparent opacity-70 hover:opacity-100'}`}>
+                        className={`w-full h-full rounded-xl overflow-hidden border-2 transition block ${isSelected ? 'border-orange-500' : 'border-transparent opacity-70 hover:opacity-100'}`}>
                         <img src={url} alt="" className="w-full h-full object-cover" />
                         {isDataUrl && (
                           <span className="absolute top-1 left-1 bg-purple-600 text-white text-[9px] px-1 rounded font-bold">NUEVA</span>
@@ -768,9 +837,11 @@ function CrearInner() {
           )}
 
           <button onClick={shareImage}
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-2xl text-lg transition active:scale-95 shadow-lg">
-            📲 Guardar y compartir
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-2xl text-lg transition active:scale-95 shadow-lg">
+            📲 Continuar →
           </button>
+
+          <StepGrid currentStep="preview" />
         </div>
       </div>
     )
@@ -793,17 +864,17 @@ function CrearInner() {
     }
 
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center p-4 pb-8">
+      <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center p-4 pb-8">
         <div className="w-full max-w-lg">
 
           {/* Header */}
           <div className="flex items-center justify-between pt-4 mb-4">
-            <button onClick={() => setStep('input')} className="text-slate-400 hover:text-white transition text-sm">← Nuevo post</button>
-            <span className="text-xs text-slate-500">{rubro.emoji} {rubro.label}</span>
+            <button onClick={() => setStep('input')} className="text-gray-500 hover:text-gray-700 transition text-sm">← Nuevo post</button>
+            <span className="text-xs text-gray-400">{rubro.emoji} {rubro.label}</span>
           </div>
 
           {/* ── Card principal: marca + info ── */}
-          <div className="bg-white rounded-2xl p-5 mb-3 shadow-lg"
+          <div className="bg-white rounded-2xl p-5 mb-3 shadow-sm border border-gray-100"
             style={{ fontFamily: rubroId === 'vinoteca' ? overlayFont : undefined }}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
@@ -814,11 +885,11 @@ function CrearInner() {
                   <p className="text-gray-500 text-sm mt-1 italic">{result.line2}</p>
                 )}
                 {result.badge && (
-                  <p className="text-purple-600 font-bold text-base mt-1">{result.badge}</p>
+                  <p className="text-orange-500 font-bold text-base mt-1">{result.badge}</p>
                 )}
               </div>
               <button onClick={() => setStep('preview')}
-                className="shrink-0 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold px-3 py-2 rounded-xl transition">
+                className="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3 py-2 rounded-xl transition">
                 🖼️ Ver imagen
               </button>
             </div>
@@ -828,30 +899,32 @@ function CrearInner() {
           {rubroId === 'vinoteca' && (result.enologist || result.story) && (
             <div className="space-y-2 mb-3">
               {result.enologist && (
-                <div className="bg-purple-950/60 border border-purple-500/20 rounded-2xl px-4 py-3">
-                  <p className="text-purple-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">🍷 Notas del enólogo</p>
-                  <p className="text-slate-200 text-sm leading-relaxed">{result.enologist}</p>
+                <div className="bg-white border-l-4 border-purple-500 rounded-2xl px-4 py-3 shadow-sm">
+                  <p className="text-purple-700 text-[10px] font-bold uppercase tracking-widest mb-1.5">🍷 Notas del enólogo</p>
+                  <p className="text-gray-700 text-sm leading-relaxed">{result.enologist}</p>
                 </div>
               )}
               {result.story && (
-                <div className="bg-rose-950/40 border border-rose-500/20 rounded-2xl px-4 py-3">
-                  <p className="text-rose-300 text-[10px] font-bold uppercase tracking-widest mb-1.5">✨ Historia y maridaje</p>
-                  <p className="text-slate-200 text-sm leading-relaxed">{result.story}</p>
+                <div className="bg-white border-l-4 border-rose-500 rounded-2xl px-4 py-3 shadow-sm">
+                  <p className="text-rose-700 text-[10px] font-bold uppercase tracking-widest mb-1.5">✨ Historia y maridaje</p>
+                  <p className="text-gray-700 text-sm leading-relaxed">{result.story}</p>
                 </div>
               )}
             </div>
           )}
 
           {/* ── Texto para copiar ── */}
-          <div className="bg-white/8 border border-white/10 rounded-2xl overflow-hidden mb-3">
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden mb-3 shadow-sm">
             {/* Tabs */}
-            <div className="flex border-b border-white/10">
+            <div className="flex border-b border-gray-100">
               {(['instagram', 'facebook'] as const).map(tab => (
                 <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-3 text-sm font-bold transition ${
+                  className={`flex-1 py-3 text-sm font-bold transition border-b-2 ${
                     activeTab === tab
-                      ? 'bg-white/15 text-white border-b-2 border-white'
-                      : 'text-slate-500 hover:text-slate-300'
+                      ? tab === 'instagram'
+                        ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] via-[#e6683c] to-[#dc2743] border-b-transparent bg-gradient-to-b from-pink-500 to-pink-500'
+                        : 'text-blue-600 border-blue-600'
+                      : 'text-gray-400 hover:text-gray-600 border-transparent'
                   }`}>
                   {tab === 'facebook' ? '👍 Facebook' : '📸 Instagram'}
                 </button>
@@ -859,36 +932,46 @@ function CrearInner() {
             </div>
             {/* Texto */}
             <div className="p-4">
-              <p className="text-white text-sm leading-relaxed whitespace-pre-wrap mb-3">
+              <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap mb-3">
                 {shareText}
               </p>
-              <button onClick={copyShareText}
-                className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition">
-                {copied ? '✅ ¡Copiado!' : '📋 Copiar texto'}
-              </button>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-400 text-xs">📋</span>
+                <button onClick={copyShareText}
+                  className="text-gray-500 hover:text-gray-700 text-xs font-semibold transition">
+                  {copied ? '✅ Copiado!' : 'Copiar'}
+                </button>
+              </div>
             </div>
           </div>
 
           {/* ── Botones de compartir ── */}
           <div className="space-y-2">
             <button onClick={copyShareText}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
-              👍 Publicar en Facebook
+              className="w-full bg-[#1877F2] hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+              👍 Publicá en Facebook
             </button>
             <button onClick={copyShareText}
               className="w-full text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
               style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
-              📸 Publicar en Instagram
+              📸 Publicá en Instagram
             </button>
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
-              💬 Compartir por WhatsApp
+              className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
+              💬 Compartí por WhatsApp
             </a>
           </div>
 
-          <p className="text-center text-slate-600 text-xs mt-3">
-            Los botones copian el texto — pegalo en la app y adjuntá la imagen
+          <p className="text-center text-gray-500 text-xs mt-3">
+            FB e IG: texto copiado — pegalo en la app junto con la imagen
           </p>
+
+          <button onClick={() => setStep('input')}
+            className="text-center text-gray-500 hover:text-gray-700 text-xs mt-4 transition underline">
+            Empezar de nuevo
+          </button>
+
+          <StepGrid currentStep="result" />
         </div>
       </div>
     )
@@ -898,36 +981,36 @@ function CrearInner() {
   // INPUT STEP
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center p-4">
+    <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center p-4">
       {showUpgrade && <UpgradeModal onClose={() => setShowUpgrade(false)} />}
 
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="flex items-center justify-between pt-4 mb-6">
-          <button onClick={() => router.push('/')} className="text-slate-400 hover:text-white transition text-sm">← Cambiar rubro</button>
+          <button onClick={() => router.push('/')} className="text-gray-500 hover:text-gray-700 transition text-sm">← Cambiar rubro</button>
           <div className="flex items-center gap-2">
             {session?.user ? (
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 text-xs truncate max-w-[140px]">{session.user.name || session.user.email}</span>
-                <button onClick={() => signOut()} className="text-slate-500 text-xs hover:text-white transition">Salir</button>
+                <span className="text-gray-500 text-xs truncate max-w-[140px]">{session.user.name || session.user.email}</span>
+                <button onClick={() => signOut()} className="text-gray-400 text-xs hover:text-gray-600 transition">Salir</button>
               </div>
             ) : (
               <button onClick={() => signIn('facebook')}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition">
+                className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-1.5 rounded-xl transition">
                 Iniciar sesión
               </button>
             )}
           </div>
         </div>
 
-        {/* Title */}
-        <div className="text-center mb-6">
-          <span className="text-5xl">{rubro.emoji}</span>
-          <h1 className="text-2xl font-black text-white mt-2">{rubro.ctaText}</h1>
-          <p className="text-slate-400 text-sm mt-1">{rubro.description}</p>
+        {/* Title card */}
+        <div className="bg-white rounded-2xl p-6 mb-4 text-center shadow-sm border border-gray-100">
+          <span className="text-5xl block mb-2">{rubro.emoji}</span>
+          <h1 className="text-2xl font-black text-gray-900">{rubro.ctaText}</h1>
+          <p className="text-gray-500 text-sm mt-2">{rubro.description}</p>
           {rubroId === 'vinoteca' && (
             <button onClick={() => router.push('/biblioteca')}
-              className="mt-2 text-purple-400 hover:text-purple-300 text-xs underline transition">
+              className="mt-3 text-orange-500 hover:text-orange-600 text-xs font-semibold underline transition">
               📚 Ver mi biblioteca de vinos
             </button>
           )}
@@ -935,13 +1018,13 @@ function CrearInner() {
 
         {/* Input mode toggle */}
         {rubro.inputType === 'both' && (
-          <div className="flex gap-2 mb-4 bg-white/10 p-1 rounded-xl">
+          <div className="flex gap-2 mb-4 bg-white p-1 rounded-xl border border-gray-100 shadow-sm">
             <button onClick={() => setInputMode('image')}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${inputMode === 'image' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+              className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${inputMode === 'image' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:text-gray-900'}`}>
               📷 Subir imagen
             </button>
             <button onClick={() => setInputMode('form')}
-              className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${inputMode === 'form' ? 'bg-white text-slate-900' : 'text-slate-400 hover:text-white'}`}>
+              className={`flex-1 py-2 rounded-lg text-sm font-bold transition ${inputMode === 'form' ? 'bg-orange-500 text-white' : 'text-gray-600 hover:text-gray-900'}`}>
               ✏️ Completar datos
             </button>
           </div>
@@ -953,10 +1036,10 @@ function CrearInner() {
             {/* Drop zone */}
             <div ref={dropZoneRef} onDrop={handleFileDrop} onDragOver={e => e.preventDefault()}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-600 hover:border-slate-400 rounded-2xl p-6 text-center cursor-pointer transition">
+              className="border-2 border-dashed border-gray-300 hover:border-gray-400 bg-white rounded-2xl p-6 text-center cursor-pointer transition shadow-sm">
               <div className="text-3xl mb-2">📷</div>
-              <p className="text-white font-semibold text-sm mb-0.5">{rubro.imageLabel}</p>
-              <p className="text-slate-500 text-xs">Arrastrá, tocá para subir, o <kbd className="bg-slate-700 text-slate-300 px-1 rounded text-xs">Ctrl+V</kbd> para pegar screenshot</p>
+              <p className="text-gray-900 font-semibold text-sm mb-0.5">{rubro.imageLabel}</p>
+              <p className="text-gray-500 text-xs">Arrastrá, tocá para subir, o <kbd className="bg-gray-100 text-gray-600 px-1 rounded text-xs">Ctrl+V</kbd> para pegar screenshot</p>
               <input ref={fileInputRef} type="file" accept="image/*" multiple capture="environment"
                 className="hidden" onChange={handleFileChange} />
             </div>
@@ -964,18 +1047,18 @@ function CrearInner() {
             {/* Thumbnails of uploaded images */}
             {uploadedImages.length > 0 && (
               <div className="mt-3">
-                <p className="text-slate-400 text-xs mb-2">
-                  Fotos subidas · <span className="text-slate-300">La IA analiza la que está marcada</span>
+                <p className="text-gray-500 text-xs mb-2">
+                  Fotos subidas · <span className="text-gray-400">La IA analiza la que está marcada</span>
                 </p>
                 <div className="flex gap-2 flex-wrap">
                   {uploadedImages.map((img, i) => (
                     <div key={i} className="relative">
                       <button onClick={() => setActiveUploadIdx(i)}
-                        className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition ${activeUploadIdx === i ? 'border-white' : 'border-transparent opacity-60 hover:opacity-90'}`}>
+                        className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition ${activeUploadIdx === i ? 'border-orange-500' : 'border-transparent opacity-60 hover:opacity-90'}`}>
                         <img src={img.preview} alt="" className="w-full h-full object-cover" />
                       </button>
                       {activeUploadIdx === i && (
-                        <span className="absolute -top-1.5 -right-1.5 bg-white text-slate-900 text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">✓</span>
+                        <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">✓</span>
                       )}
                       <button onClick={() => removeImage(i)}
                         className="absolute -bottom-1.5 -right-1.5 bg-red-500 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center hover:bg-red-600 transition">
@@ -985,7 +1068,7 @@ function CrearInner() {
                   ))}
                   {/* Add more */}
                   <button onClick={() => fileInputRef.current?.click()}
-                    className="w-16 h-16 rounded-xl border-2 border-dashed border-slate-600 hover:border-slate-400 flex items-center justify-center text-slate-500 hover:text-white transition text-2xl">
+                    className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 flex items-center justify-center text-gray-400 hover:text-gray-600 transition text-2xl">
                     +
                   </button>
                 </div>
@@ -999,24 +1082,24 @@ function CrearInner() {
           <div className="space-y-3 mb-4">
             {rubro.formFields.map(field => (
               <div key={field.key}>
-                <label className="text-slate-300 text-sm font-semibold block mb-1">
-                  {field.label}{field.required && <span className="text-red-400 ml-1">*</span>}
+                <label className="text-gray-700 text-sm font-semibold block mb-1">
+                  {field.label}{field.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 {field.type === 'textarea' ? (
                   <textarea placeholder={field.placeholder} value={formValues[field.key] || ''}
                     onChange={e => setFormValues(v => ({ ...v, [field.key]: e.target.value }))}
-                    rows={3} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white/40 resize-none" />
+                    rows={3} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-200 resize-none shadow-sm" />
                 ) : field.type === 'select' ? (
                   <select value={formValues[field.key] || ''}
                     onChange={e => setFormValues(v => ({ ...v, [field.key]: e.target.value }))}
-                    className="w-full bg-slate-800 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-white/40">
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-200 shadow-sm">
                     <option value="">Seleccionar...</option>
                     {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 ) : (
                   <input type={field.type} placeholder={field.placeholder} value={formValues[field.key] || ''}
                     onChange={e => setFormValues(v => ({ ...v, [field.key]: e.target.value }))}
-                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white/40" />
+                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-200 shadow-sm" />
                 )}
               </div>
             ))}
@@ -1024,17 +1107,19 @@ function CrearInner() {
         )}
 
         {error && (
-          <div className="bg-red-500/20 border border-red-500/40 text-red-300 rounded-xl px-4 py-3 text-sm mb-4">{error}</div>
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-4">{error}</div>
         )}
 
         <button onClick={handleProcess} disabled={false}
-          className={`w-full bg-gradient-to-r ${rubro.color} text-white font-black py-4 rounded-2xl text-lg transition active:scale-95 shadow-lg disabled:opacity-50`}>
+          className={`w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 rounded-2xl text-lg transition active:scale-95 shadow-lg disabled:opacity-50`}>
           {session?.user ? '✨ Generar post con IA' : '🔑 Iniciar sesión para continuar'}
         </button>
 
         {!result?.isPro && result && (
-          <p className="text-center text-slate-500 text-xs mt-3">{result.usedCount}/10 posts gratuitos usados este mes</p>
+          <p className="text-center text-gray-500 text-xs mt-3">{result.usedCount}/10 posts gratuitos usados este mes</p>
         )}
+
+        <StepGrid currentStep="input" />
       </div>
     </div>
   )
@@ -1044,8 +1129,8 @@ function CrearInner() {
 export default function CrearPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Cargando...</div>
+      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center">
+        <div className="text-gray-900 text-xl">Cargando...</div>
       </div>
     }>
       <CrearInner />
