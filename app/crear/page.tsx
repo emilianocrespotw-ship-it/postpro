@@ -1064,7 +1064,7 @@ function CrearInner() {
               <div className="text-3xl mb-2">📷</div>
               <p className="text-gray-900 font-semibold text-sm mb-0.5">{rubro.imageLabel}</p>
               <p className="text-gray-500 text-xs">Arrastrá, tocá para subir, o <kbd className="bg-gray-100 text-gray-600 px-1 rounded text-xs">Ctrl+V</kbd> para pegar screenshot</p>
-              <input ref={fileInputRef} type="file" accept="image/*" multiple capture="environment"
+              <input ref={fileInputRef} type="file" accept="image/*" multiple
                 className="hidden" onChange={handleFileChange} />
             </div>
 
