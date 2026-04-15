@@ -99,15 +99,16 @@ function StepGrid({ currentStep }: { currentStep: 'input' | 'processing' | 'resu
   )
 }
 
-// ─── Filter presets ───────────────────────────────────────────────────────────
+// ─── Filter presets (Instagram style, igual a PostViajes) ────────────────────
 const FILTERS = [
-  { id: 'none',      label: 'Original',  css: 'none' },
-  { id: 'vivid',     label: 'Vívido',    css: 'saturate(1.5) contrast(1.1)' },
-  { id: 'warm',      label: 'Cálido',    css: 'sepia(0.35) saturate(1.3) brightness(1.05)' },
-  { id: 'cool',      label: 'Frío',      css: 'hue-rotate(20deg) saturate(1.2) brightness(1.02)' },
-  { id: 'dramatic',  label: 'Dramático', css: 'contrast(1.3) saturate(1.2) brightness(0.9)' },
-  { id: 'bw',        label: 'B&N',       css: 'grayscale(1) contrast(1.1)' },
-  { id: 'fade',      label: 'Fade',      css: 'brightness(1.1) saturate(0.8) contrast(0.9)' },
+  { id: 'normal',     label: 'Normal',    css: 'none' },
+  { id: 'clarendon',  label: 'Clarendon', css: 'contrast(1.2) saturate(1.35)' },
+  { id: 'juno',       label: 'Juno',      css: 'sepia(0.35) contrast(1.15) brightness(1.15) saturate(1.8)' },
+  { id: 'lark',       label: 'Lark',      css: 'contrast(0.9) brightness(1.1) saturate(1.25)' },
+  { id: 'aden',       label: 'Aden',      css: 'hue-rotate(-20deg) contrast(0.9) saturate(0.85) brightness(1.2)' },
+  { id: 'cairo',      label: 'Cairo',     css: 'sepia(0.5) contrast(1.1) brightness(1.05) saturate(1.2)' },
+  { id: 'moon',       label: 'Moon',      css: 'grayscale(1) contrast(1.1) brightness(1.1)' },
+  { id: 'vibrante',   label: 'Vibrante',  css: 'saturate(1.8) contrast(1.15)' },
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -357,16 +358,17 @@ function CrearInner() {
       try { await document.fonts.load('900 80px "Playfair Display"') } catch {}
     }
 
-    // ── Layout vinoteca: foto arriba (65%) + franja crema abajo (35%) ──
+    // ── Layout vinoteca: foto principal + franja derecha (estilo Salentein) ──
     if (isVino) {
-      const PHOTO_H = Math.round(H * 0.72)
-      const TEXT_H  = H - PHOTO_H
+      const STRIP_W = 230  // franja derecha
+      const PHOTO_W = W - STRIP_W
+      const BADGE_H = 230  // badge logo abajo
 
-      // Fondo crema para la zona de texto
+      // Fondo crema total
       ctx.fillStyle = '#FFFDF7'
       ctx.fillRect(0, 0, W, H)
 
-      // Foto superior
+      // Foto en zona izquierda
       const photoUrl = selectedPhoto
         ? selectedPhoto.startsWith('data:') ? selectedPhoto
           : `/api/download-image?url=${encodeURIComponent(selectedPhoto)}`
@@ -377,107 +379,86 @@ function CrearInner() {
           const img = new window.Image()
           img.crossOrigin = 'anonymous'
           await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = rej; img.src = photoUrl })
-
           const offscreen = document.createElement('canvas')
-          offscreen.width = W; offscreen.height = PHOTO_H
+          offscreen.width = PHOTO_W; offscreen.height = H
           const offCtx = offscreen.getContext('2d')!
           if (currentFilter.css !== 'none') offCtx.filter = currentFilter.css
-          const scale = Math.max(W / img.width, PHOTO_H / img.height)
+          const scale = Math.max(PHOTO_W / img.width, H / img.height)
           const dw = img.width * scale, dh = img.height * scale
-          offCtx.drawImage(img, (W - dw) / 2, (PHOTO_H - dh) / 2, dw, dh)
+          offCtx.drawImage(img, (PHOTO_W - dw) / 2, (H - dh) / 2, dw, dh)
           ctx.drawImage(offscreen, 0, 0)
         } catch {}
       }
 
-      // Sutil vignette en el borde inferior de la foto
-      const vig = ctx.createLinearGradient(0, PHOTO_H - 120, 0, PHOTO_H)
-      vig.addColorStop(0, 'rgba(255,253,247,0)')
-      vig.addColorStop(1, 'rgba(255,253,247,0.6)')
-      ctx.fillStyle = vig
-      ctx.fillRect(0, PHOTO_H - 120, W, 120)
+      // Franja crema derecha
+      ctx.fillStyle = '#FFFDF7'
+      ctx.fillRect(PHOTO_W, 0, STRIP_W, H)
 
-      // Línea separadora muy sutil
-      ctx.strokeStyle = 'rgba(0,0,0,0.08)'
+      // Línea separadora sutil
+      ctx.strokeStyle = 'rgba(0,0,0,0.07)'
       ctx.lineWidth = 1
       ctx.beginPath()
-      ctx.moveTo(60, PHOTO_H + 1)
-      ctx.lineTo(W - 60, PHOTO_H + 1)
+      ctx.moveTo(PHOTO_W, 40)
+      ctx.lineTo(PHOTO_W, H - 40)
       ctx.stroke()
 
-      // ── Texto en zona crema ──
-      ctx.textAlign = 'center'
-      ctx.shadowColor = 'transparent'
-      ctx.shadowBlur = 0
-
-      const centerX = W / 2
-      const MAX_W = W - 120
-      let textY = PHOTO_H + 62
-
-      // MARCA — Playfair 900, negro, grande
+      // ── Texto vertical en la franja (rotado 90°) ──
       const marcaText = (result.line1 || '').toUpperCase()
-      let fs = 84
+      const varText   = result.line2 || ''
+
+      ctx.save()
+      ctx.translate(PHOTO_W + STRIP_W / 2, (H - BADGE_H) / 2)
+      ctx.rotate(-Math.PI / 2)
+
+      const MAX_VERT = H - BADGE_H - 80
+      let fs = 88
       ctx.font = `900 ${fs}px ${font}`
-      while (ctx.measureText(marcaText).width > MAX_W && fs > 36) {
+      while (ctx.measureText(marcaText).width > MAX_VERT && fs > 32) {
         fs -= 4
         ctx.font = `900 ${fs}px ${font}`
       }
       ctx.fillStyle = '#1a1a1a'
-      // Wrap en 2 líneas si sigue siendo largo
-      const words = marcaText.split(' ')
-      if (ctx.measureText(marcaText).width > MAX_W && words.length > 1) {
-        const mid = Math.ceil(words.length / 2)
-        const la = words.slice(0, mid).join(' ')
-        const lb = words.slice(mid).join(' ')
-        let fs2 = 68
-        ctx.font = `900 ${fs2}px ${font}`
-        const longest = la.length > lb.length ? la : lb
-        while (ctx.measureText(longest).width > MAX_W && fs2 > 28) { fs2 -= 4; ctx.font = `900 ${fs2}px ${font}` }
-        ctx.fillText(la, centerX, textY)
-        textY += fs2 + 8
-        ctx.fillText(lb, centerX, textY)
-        textY += fs2 + 8
-      } else {
-        ctx.fillText(marcaText, centerX, textY)
-        textY += fs + 8
-      }
+      ctx.textAlign = 'center'
+      ctx.shadowColor = 'transparent'
+      ctx.fillText(marcaText, 0, -16)
 
-      // Línea fina decorativa
-      ctx.strokeStyle = 'rgba(147,51,234,0.35)'
-      ctx.lineWidth = 1.5
+      if (varText) {
+        ctx.font = `italic 400 ${Math.round(fs * 0.42)}px ${font}`
+        ctx.fillStyle = '#999'
+        ctx.fillText(varText, 0, fs * 0.55)
+      }
+      ctx.restore()
+
+      // Línea decorativa sobre el badge
+      ctx.strokeStyle = 'rgba(147,51,234,0.25)'
+      ctx.lineWidth = 1
       ctx.beginPath()
-      ctx.moveTo(centerX - 80, textY + 8)
-      ctx.lineTo(centerX + 80, textY + 8)
+      ctx.moveTo(PHOTO_W + 24, H - BADGE_H)
+      ctx.lineTo(W - 24, H - BADGE_H)
       ctx.stroke()
-      textY += 28
 
-      // varietal · categoría · año — italic, gris medio
-      if (result.line2) {
-        ctx.font = `italic 400 30px ${font}`
-        ctx.fillStyle = '#888'
-        ctx.fillText(result.line2, centerX, textY)
-        textY += 44
-      }
+      // Badge oscuro abajo con logo o precio
+      ctx.fillStyle = '#1a1a1a'
+      ctx.fillRect(PHOTO_W, H - BADGE_H, STRIP_W, BADGE_H)
 
-      // Precio — morado suave
-      if (result.badge) {
-        ctx.font = `600 28px ${font}`
-        ctx.fillStyle = '#9333ea'
-        ctx.fillText(result.badge, centerX, textY)
-      }
-
-      // Logo en esquina superior derecha
       if (showLogo && agencyLogo) {
         try {
           const logo = new window.Image()
           logo.crossOrigin = 'anonymous'
           await new Promise<void>((res, rej) => { logo.onload = () => res(); logo.onerror = rej; logo.src = agencyLogo })
-          const LH = 52
-          const lscale = LH / logo.height
-          const lw = logo.width * lscale
-          ctx.globalAlpha = 0.85
-          ctx.drawImage(logo, W - lw - 28, 20, lw, LH)
+          const maxW = STRIP_W - 32
+          const maxH = BADGE_H - 32
+          const scale = Math.min(maxW / logo.width, maxH / logo.height)
+          const lw = logo.width * scale, lh = logo.height * scale
+          ctx.globalAlpha = 0.9
+          ctx.drawImage(logo, PHOTO_W + (STRIP_W - lw) / 2, H - BADGE_H + (BADGE_H - lh) / 2, lw, lh)
           ctx.globalAlpha = 1
         } catch {}
+      } else if (result.badge) {
+        ctx.font = `700 36px ${font}`
+        ctx.fillStyle = '#FFFDF7'
+        ctx.textAlign = 'center'
+        ctx.fillText(result.badge, PHOTO_W + STRIP_W / 2, H - BADGE_H / 2 + 12)
       }
 
     } else {
@@ -671,42 +652,47 @@ function CrearInner() {
 
           {/* Live preview */}
           {rubroId === 'vinoteca' ? (
-            /* ── Vinoteca: layout split foto + franja crema ── */
-            <div className="w-full rounded-2xl overflow-hidden shadow-2xl mb-4 bg-[#FFFDF7]" style={{ aspectRatio: '1/1' }}>
-              {/* Foto superior 72% */}
-              <div className="relative w-full" style={{ height: '72%' }}>
-                {selectedPhoto && (
+            /* ── Vinoteca: foto izquierda + franja derecha (estilo Salentein) ── */
+            <div className="w-full rounded-2xl overflow-hidden shadow-2xl mb-4 bg-[#FFFDF7] flex"
+              style={{ aspectRatio: '1/1' }}>
+              {/* Foto zona izquierda (78%) */}
+              <div className="relative overflow-hidden" style={{ width: '78%' }}>
+                {selectedPhoto ? (
                   <img src={selectedPhoto} alt="foto"
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{ filter: currentFilter.css !== 'none' ? currentFilter.css : undefined }} />
-                )}
-                {/* Vignette sutil en borde inferior */}
-                <div className="absolute bottom-0 left-0 right-0 h-16"
-                  style={{ background: 'linear-gradient(to bottom, rgba(255,253,247,0), rgba(255,253,247,0.6))' }} />
-                {/* Logo esquina superior derecha */}
-                {showLogo && agencyLogo && (
-                  <img src={agencyLogo} alt="logo"
-                    className="absolute top-2 right-2 h-7 object-contain opacity-85 max-w-[100px]" />
+                ) : (
+                  <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-400 text-4xl">🍷</span>
+                  </div>
                 )}
               </div>
-              {/* Franja crema 35%: marca + info */}
-              <div className="flex flex-col items-center justify-center px-4 pt-3 pb-4"
-                style={{ height: '28%', fontFamily: overlayFont }}>
-                <p className="font-black text-gray-900 leading-tight text-center break-words w-full"
-                  style={{ fontSize: 'clamp(18px, 6vw, 38px)' }}>
-                  {result?.line1?.toUpperCase()}
-                </p>
-                <div className="w-16 border-t border-purple-400/40 my-1.5" />
-                {result?.line2 && (
-                  <p className="text-gray-400 italic text-center" style={{ fontSize: 'clamp(9px, 2.5vw, 15px)' }}>
-                    {result.line2}
-                  </p>
-                )}
-                {result?.badge && (
-                  <p className="text-purple-600 font-semibold mt-0.5" style={{ fontSize: 'clamp(9px, 2.2vw, 14px)' }}>
-                    {result.badge}
-                  </p>
-                )}
+              {/* Franja crema derecha (22%) */}
+              <div className="flex flex-col items-center border-l border-gray-100" style={{ width: '22%', fontFamily: overlayFont }}>
+                {/* Texto vertical (usando writing-mode) */}
+                <div className="flex-1 flex items-center justify-center w-full overflow-hidden px-1">
+                  <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', textAlign: 'center' }}>
+                    <p className="font-black text-gray-900 leading-tight"
+                      style={{ fontSize: 'clamp(10px, 3.5vw, 22px)' }}>
+                      {result?.line1?.toUpperCase()}
+                    </p>
+                    {result?.line2 && (
+                      <p className="text-gray-400 italic mt-1"
+                        style={{ fontSize: 'clamp(7px, 2vw, 13px)' }}>
+                        {result.line2}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* Badge oscuro abajo con logo */}
+                <div className="w-full bg-gray-900 flex items-center justify-center" style={{ height: '22%' }}>
+                  {showLogo && agencyLogo ? (
+                    <img src={agencyLogo} alt="logo"
+                      className="max-w-full max-h-full object-contain p-1.5 opacity-90" />
+                  ) : (
+                    <span className="text-white text-xs font-bold opacity-60">🍷</span>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
@@ -746,14 +732,22 @@ function CrearInner() {
 
           {/* Controls */}
           <div className="bg-white rounded-2xl p-4 mb-4 space-y-4 border border-gray-100 shadow-sm">
-            {/* Filtros */}
+            {/* Filtros — thumbnails circulares estilo PostViajes/Instagram */}
             <div>
-              <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Filtro</p>
-              <div className="flex gap-2 overflow-x-auto pb-1">
+              <div className="flex gap-3 overflow-x-auto pb-2">
                 {FILTERS.map(f => (
                   <button key={f.id} onClick={() => setSelectedFilter(f.id)}
-                    className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${selectedFilter === f.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                    {f.label}
+                    className="shrink-0 flex flex-col items-center gap-1 transition">
+                    <div className={`w-14 h-14 rounded-full overflow-hidden border-[2.5px] transition ${selectedFilter === f.id ? 'border-black' : 'border-transparent'}`}>
+                      {selectedPhoto ? (
+                        <img src={selectedPhoto} alt={f.label}
+                          className="w-full h-full object-cover"
+                          style={{ filter: f.css !== 'none' ? f.css : undefined }} />
+                      ) : (
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">🖼</div>
+                      )}
+                    </div>
+                    <span className={`text-[10px] font-semibold ${selectedFilter === f.id ? 'text-gray-900' : 'text-gray-400'}`}>{f.label}</span>
                   </button>
                 ))}
               </div>
@@ -875,20 +869,46 @@ function CrearInner() {
   // RESULT STEP
   // ─────────────────────────────────────────────────────────────────────────
   if (step === 'result' && result) {
-    const shareText = activeTab === 'facebook' ? result.textFacebook : result.textInstagram
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`
+    // Texto completo: incluye notas del enólogo + historia + texto base
+    const buildFullText = (network: 'facebook' | 'instagram') => {
+      const base = network === 'facebook' ? result.textFacebook : result.textInstagram
+      if (rubroId !== 'vinoteca') return base
+      const parts: string[] = []
+      if (result.enologist) parts.push(result.enologist)
+      if (result.story) parts.push(result.story)
+      parts.push(base)
+      return parts.join('\n\n')
+    }
+
+    const shareText = buildFullText(activeTab)
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(buildFullText('instagram'))}`
 
     const copyShareText = async () => {
       await navigator.clipboard.writeText(shareText)
       setCopied(true); setTimeout(() => setCopied(false), 2000)
     }
-    const copyWhatsApp = async () => {
-      await navigator.clipboard.writeText(shareText)
-      setCopiedWhatsApp(true); setTimeout(() => setCopiedWhatsApp(false), 2000)
+
+    // Compartir imagen + texto via navigator.share (WhatsApp nativo en mobile)
+    const shareViaWhatsApp = async () => {
+      const text = buildFullText('instagram')
+      if (canvasRef.current && navigator.share) {
+        try {
+          await renderCanvas()
+          const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.92)
+          const blob = await (await fetch(dataUrl)).blob()
+          const file = new File([blob], `post-${rubroId}.jpg`, { type: 'image/jpeg' })
+          if (navigator.canShare?.({ files: [file] })) {
+            await navigator.share({ files: [file], text }); return
+          }
+        } catch {}
+      }
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
     }
 
     return (
       <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center p-4 pb-8">
+        {/* Canvas oculto para WhatsApp share */}
+        <canvas ref={canvasRef} className="hidden" />
         <div className="w-full max-w-lg">
 
           {/* Header */}
@@ -896,6 +916,52 @@ function CrearInner() {
             <button onClick={() => setStep('input')} className="text-gray-500 hover:text-gray-700 transition text-sm">← Nuevo post</button>
             <span className="text-xs text-gray-400">{rubro.emoji} {rubro.label}</span>
           </div>
+
+          {/* ── Imagen siempre visible ── */}
+          {selectedPhoto && (
+            <div className="w-full rounded-2xl overflow-hidden shadow-lg mb-3 bg-[#FFFDF7] flex" style={{ aspectRatio: '1/1' }}>
+              {rubroId === 'vinoteca' ? (
+                <>
+                  <div className="relative overflow-hidden" style={{ width: '78%' }}>
+                    <img src={selectedPhoto} alt="foto"
+                      className="absolute inset-0 w-full h-full object-cover" />
+                  </div>
+                  <div className="flex flex-col items-center border-l border-gray-100" style={{ width: '22%', fontFamily: overlayFont }}>
+                    <div className="flex-1 flex items-center justify-center w-full overflow-hidden px-1">
+                      <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', textAlign: 'center' }}>
+                        <p className="font-black text-gray-900" style={{ fontSize: 'clamp(10px,3.5vw,22px)' }}>
+                          {result.line1?.toUpperCase()}
+                        </p>
+                        {result.line2 && (
+                          <p className="text-gray-400 italic mt-1" style={{ fontSize: 'clamp(7px,2vw,13px)' }}>
+                            {result.line2}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-900 flex items-center justify-center" style={{ height: '22%' }}>
+                      {agencyLogo ? (
+                        <img src={agencyLogo} alt="logo" className="max-w-full max-h-full object-contain p-1 opacity-90" />
+                      ) : (
+                        <span className="text-white text-xs opacity-50">🍷</span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="relative w-full">
+                  <img src={selectedPhoto} alt="foto"
+                    className="absolute inset-0 w-full h-full object-cover" />
+                  <div className="absolute inset-0"
+                    style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.85) 100%)' }} />
+                  <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 text-center text-white">
+                    <p className="font-black text-2xl">{result.line1?.toUpperCase()}</p>
+                    {result.line2 && <p className="text-sm opacity-80">{result.line2}</p>}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Card principal: marca + info ── */}
           <div className="bg-white rounded-2xl p-5 mb-3 shadow-sm border border-gray-100"
@@ -913,8 +979,8 @@ function CrearInner() {
                 )}
               </div>
               <button onClick={() => setStep('preview')}
-                className="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold px-3 py-2 rounded-xl transition">
-                🖼️ Ver imagen
+                className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
+                🎨 Editar estilo
               </button>
             </div>
           </div>
@@ -980,10 +1046,10 @@ function CrearInner() {
               style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
               📸 Publicá en Instagram
             </button>
-            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+            <button onClick={shareViaWhatsApp}
               className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
               💬 Compartí por WhatsApp
-            </a>
+            </button>
           </div>
 
           <p className="text-center text-gray-500 text-xs mt-3">
