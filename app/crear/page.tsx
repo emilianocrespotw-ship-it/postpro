@@ -48,69 +48,53 @@ const PROCESSING_STEPS = [
   { emoji: '🖼️', text: 'Buscando las mejores fotos...' },
 ]
 
-// ─── StepGrid Component ──────────────────────────────────────────────────────
+// ─── StepGrid Component (5 pasos, fila horizontal como PostViajes) ───────────
 function StepGrid({ currentStep }: { currentStep: 'input' | 'processing' | 'result' | 'preview' }) {
   const steps = [
     { number: 1, emoji: '📷', label: 'Subís la foto' },
-    { number: 2, emoji: '🤖', label: 'IA escribe el post' },
+    { number: 2, emoji: '🤖', label: 'IA analiza y escribe el post' },
     { number: 3, emoji: '🖼️', label: 'Elegí la foto' },
-    { number: 4, emoji: '📲', label: 'Publicalo' },
+    { number: 4, emoji: '🎨', label: 'Elegí el estilo' },
+    { number: 5, emoji: '🚀', label: 'Publicalo en redes' },
   ]
 
-  // Determine which steps are completed, active, pending
-  const stepStates: Record<'input' | 'processing' | 'result' | 'preview', number[]> = {
-    'input': [],           // no steps completed
-    'processing': [1],     // step 1 done, step 2 active
-    'result': [1, 2],      // steps 1,2 done, step 3 active
-    'preview': [1, 2, 3],  // steps 1,2,3 done, step 4 active
-  }
+  // Mapeo de estado de la app → paso activo visual (5 pasos)
+  const activeStepNum =
+    currentStep === 'input'      ? 1 :
+    currentStep === 'processing' ? 2 :
+    currentStep === 'result'     ? 3 :
+    /* preview */                  4
 
-  const completedSteps = stepStates[currentStep]
-  const activeStepNum = currentStep === 'input' ? 1 : currentStep === 'processing' ? 2 : currentStep === 'result' ? 3 : 4
+  const completedSteps = Array.from({ length: activeStepNum - 1 }, (_, i) => i + 1)
 
   return (
-    <div className="grid grid-cols-2 gap-3 mt-8">
-      {steps.map(step => {
-        const isCompleted = completedSteps.includes(step.number)
-        const isActive = step.number === activeStepNum
-        const isPending = step.number > activeStepNum
+    <div className="mt-8 mb-4">
+      {/* Fila horizontal scrolleable en mobile */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {steps.map(step => {
+          const isCompleted = completedSteps.includes(step.number)
+          const isActive = step.number === activeStepNum
+          const isPending = step.number > activeStepNum && !(currentStep === 'preview' && step.number === 5)
 
-        let bgClass = ''
-        let borderClass = ''
-        let textClass = ''
-        let checkmark = ''
-
-        if (isCompleted) {
-          bgClass = 'bg-green-50'
-          borderClass = 'border-green-200'
-          textClass = 'text-green-700'
-          checkmark = '✓'
-        } else if (isActive) {
-          bgClass = 'bg-white'
-          borderClass = 'border-gray-200 shadow-sm'
-          textClass = 'text-gray-900 font-bold'
-          checkmark = ''
-        } else {
-          bgClass = 'bg-gray-50'
-          borderClass = 'border-gray-100'
-          textClass = 'text-gray-400'
-          checkmark = ''
-        }
-
-        return (
-          <div
-            key={step.number}
-            className={`${bgClass} border ${borderClass} rounded-2xl p-4 text-center transition-all ${
-              isCompleted ? '' : isActive ? '' : ''
-            }`}
-          >
-            <div className="text-2xl mb-2">
-              {isCompleted ? checkmark : step.emoji}
+          return (
+            <div key={step.number}
+              className={`flex-shrink-0 flex flex-col items-center justify-center rounded-2xl border p-3 transition-all w-[18%] min-w-[64px] ${
+                isCompleted ? 'bg-green-50 border-green-200' :
+                isActive    ? 'bg-white border-gray-200 shadow-sm' :
+                              'bg-gray-50 border-gray-100'
+              }`}>
+              <div className={`text-xl mb-1 ${isCompleted ? 'text-green-500' : isPending ? 'opacity-30' : ''}`}>
+                {isCompleted ? '✓' : step.emoji}
+              </div>
+              <p className={`text-[10px] font-semibold text-center leading-tight ${
+                isCompleted ? 'text-green-700' :
+                isActive    ? 'text-gray-900' :
+                              'text-gray-400'
+              }`}>{step.label}</p>
             </div>
-            <p className={`text-xs font-semibold ${textClass}`}>{step.label}</p>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -863,7 +847,25 @@ function CrearInner() {
             Empezar de nuevo
           </button>
 
-          <StepGrid currentStep="preview" />
+          {/* Step 5 activo = Publicalo */}
+          <div className="mt-8 mb-4">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {[
+                { n:1, e:'📷', l:'Subís la foto' },
+                { n:2, e:'🤖', l:'IA analiza y escribe el post' },
+                { n:3, e:'🖼️', l:'Elegí la foto' },
+                { n:4, e:'🎨', l:'Elegí el estilo' },
+                { n:5, e:'🚀', l:'Publicalo en redes' },
+              ].map(s => (
+                <div key={s.n} className={`flex-shrink-0 flex flex-col items-center justify-center rounded-2xl border p-3 transition-all w-[18%] min-w-[64px] ${
+                  s.n < 5 ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 shadow-sm'
+                }`}>
+                  <div className={`text-xl mb-1 ${s.n < 5 ? 'text-green-500' : ''}`}>{s.n < 5 ? '✓' : s.e}</div>
+                  <p className={`text-[10px] font-semibold text-center leading-tight ${s.n < 5 ? 'text-green-700' : 'text-gray-900'}`}>{s.l}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     )
