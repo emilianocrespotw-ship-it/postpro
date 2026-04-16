@@ -1,6 +1,7 @@
 import { supabaseAdmin } from './supabase'
 
 export const ADMIN_EMAIL = 'emiliano.crespo.tw@gmail.com'
+const ADMIN_IDS = ['fb_10164390846133390']
 export const FREE_LIMIT = 10
 
 function currentMonth() {
@@ -16,7 +17,7 @@ export interface UsageInfo {
 }
 
 export async function getUserUsage(email: string): Promise<UsageInfo> {
-  if (email === ADMIN_EMAIL) {
+  if (email === ADMIN_EMAIL || ADMIN_IDS.includes(email)) {
     return { allowed: true, isAdmin: true, isPro: true, usedCount: 0, limit: Infinity }
   }
 
@@ -57,7 +58,7 @@ export async function getUserUsage(email: string): Promise<UsageInfo> {
 }
 
 export async function incrementUsage(email: string): Promise<void> {
-  if (email === ADMIN_EMAIL) return
+  if (email === ADMIN_EMAIL || ADMIN_IDS.includes(email)) return
   const month = currentMonth()
 
   const { data: existing } = await supabaseAdmin
