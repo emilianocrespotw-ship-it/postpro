@@ -1082,7 +1082,8 @@ function CrearInner() {
           <div className="flex items-center gap-2">
             {session?.user ? (
               <div className="flex items-center gap-2">
-                <span className="text-gray-500 text-xs truncate max-w-[140px]">{session.user.name || session.user.email}</span>
+                <span className="text-gray-500 text-xs truncate max-w-[140px]" title={session.user.email || ''}>{session.user.name || session.user.email}</span>
+                <span className="text-[10px] text-gray-300 hidden sm:inline">{session.user.email}</span>
                 <button onClick={() => signOut()} className="text-gray-400 text-xs hover:text-gray-600 transition">Salir</button>
               </div>
             ) : (
