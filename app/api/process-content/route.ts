@@ -148,9 +148,36 @@ export async function POST(req: NextRequest) {
     const story     = toStr(texts.story || '')
     const cta       = toStr(texts.cta || '')
 
-    // ── PASO 3: Fotos del banco de vinos + Pexels atmosférico ───────────────
-    console.log(`[${rubroId}] Buscando imágenes...`)
+    // ── PASO 3: Imágenes ─────────────────────────────────────────────────────
+    console.log(`[${rubroId}] Buscando/generando imágenes...`)
     let images: string[] = []
+
+    // Para heladería: generar imagen con IA (Pollinations/Flux) en lugar de Pexels
+    if (rubroId === 'heladeria') {
+      const promo = toStr(extracted.promo || '')
+      const producto = toStr(extracted.producto || '')
+      const local = toStr(extracted.local || '')
+
+      // Construir prompt para imagen generada por IA
+      const promoShort = promo.length > 60 ? promo.slice(0, 60) : promo
+      const aiPromptParts = [
+        'colorful artisan ice cream shop promotional poster',
+        'vibrant illustrated style, appetizing and fun',
+        producto ? `featuring ${producto} flavor ice cream` : 'featuring colorful gelato scoops',
+        'beautiful pastel and vivid colors, food photography style',
+        'instagram-worthy, cheerful atmosphere',
+        'NO text overlays, clean background',
+      ]
+      const aiPrompt = aiPromptParts.join(', ')
+
+      // Generar 3 variantes con seeds distintos para dar opciones
+      const seeds = [42, 137, 891]
+      const aiImages: string[] = seeds.map(seed =>
+        `https://image.pollinations.ai/prompt/${encodeURIComponent(aiPrompt)}?width=1080&height=1080&seed=${seed}&nologo=true&enhance=true`
+      )
+      images = aiImages
+      console.log(`[heladeria] ${aiImages.length} imágenes AI generadas`)
+    }
 
     // Para vinoteca: buscar fotos guardadas de esta marca+varietal específica
     if (rubroId === 'vinoteca') {
@@ -176,8 +203,8 @@ export async function POST(req: NextRequest) {
     }
     // Para otros rubros tampoco agregamos marcadores: el frontend prepend sus propias previews
 
-    // Completar con Pexels atmosférico hasta tener 5 fotos en total
-    const pexelsNeeded = Math.max(0, 5 - images.filter(u => !u.startsWith('__')).length)
+    // Completar con Pexels atmosférico (no para heladería que usa IA)
+    const pexelsNeeded = rubroId === 'heladeria' ? 0 : Math.max(0, 5 - images.filter(u => !u.startsWith('__')).length)
     if (pexelsNeeded > 0) {
       try {
         const searchQ = toStr(extracted.searchQuery) || rubro.searchQueryHint

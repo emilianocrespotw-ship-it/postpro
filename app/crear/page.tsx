@@ -38,7 +38,7 @@ const RUBRO_FONT: Record<string, string> = {
   turismo:      'Inter, system-ui, sans-serif',
   inmobiliaria: 'Inter, system-ui, sans-serif',
   gastronomia:  'Inter, system-ui, sans-serif',
-  heladeria:    'Inter, system-ui, sans-serif',
+  heladeria:    '"Bebas Neue", Impact, sans-serif',
 }
 
 // ─── Processing steps (module-level constant) ────────────────────────────────
@@ -325,10 +325,10 @@ function CrearInner() {
       }
       if (!res.ok) throw new Error(data.error || 'Error al procesar')
 
-      // Las fotos subidas van siempre primero, directamente desde las previews locales
-      // El API devuelve solo fotos del banco + Pexels (sin marcadores)
-      const userPreviews = uploadedImages.map(u => u.preview)
+      // Para heladería: solo imágenes AI (no mostrar la foto del cartel)
+      // Para otros rubros: fotos del usuario primero, luego las del API
       const apiImages: string[] = (data.images || []).filter(Boolean)
+      const userPreviews = rubroId === 'heladeria' ? [] : uploadedImages.map(u => u.preview)
       const resolvedImages = [...userPreviews, ...apiImages]
 
       clearInterval(stepInterval)
@@ -353,10 +353,21 @@ function CrearInner() {
     canvas.width = W; canvas.height = H
 
     const isVino = rubroId === 'vinoteca'
-    const font = isVino ? '"Playfair Display", Georgia, serif' : 'Inter, sans-serif'
+    const isHeladeria = rubroId === 'heladeria'
 
+    // Cargar fuente correcta para canvas según rubro
+    let font = 'Inter, sans-serif'
     if (isVino) {
       try { await document.fonts.load('900 80px "Playfair Display"') } catch {}
+      font = '"Playfair Display", Georgia, serif'
+    } else if (isHeladeria) {
+      // Bebas Neue: leer nombre real que asignó Next.js desde CSS var
+      const bebasCssFont = getComputedStyle(document.body).getPropertyValue('--font-bebas').trim()
+      const bebasFont = bebasCssFont || '"Bebas Neue"'
+      try {
+        await document.fonts.load(`400 96px ${bebasFont}`)
+      } catch {}
+      font = `${bebasFont}, Impact, sans-serif`
     }
 
     // ── Layout vinoteca: foto principal + franja derecha (estilo Salentein) ──
@@ -1134,12 +1145,13 @@ function CrearInner() {
               <div className="text-3xl mb-2">📷</div>
               <p className="text-gray-900 font-semibold text-sm mb-0.5">{rubro.imageLabel}</p>
               <p className="text-gray-500 text-xs">Arrastrá, tocá para subir, o <kbd className="bg-gray-100 text-gray-600 px-1 rounded text-xs">Ctrl+V</kbd> para pegar screenshot</p>
-              <input ref={fileInputRef} type="file" accept="image/*" multiple
+              <input ref={fileInputRef} type="file" accept="image/*"
+                multiple={rubroId !== 'heladeria'}
                 className="hidden" onChange={handleFileChange} />
             </div>
 
-            {/* Thumbnails of uploaded images */}
-            {uploadedImages.length > 0 && (
+            {/* Thumbnails — solo para rubros con múltiples fotos (no heladería) */}
+            {rubroId !== 'heladeria' && uploadedImages.length > 0 && (
               <div className="mt-3">
                 <p className="text-gray-500 text-xs mb-2">
                   Fotos subidas · <span className="text-gray-400">La IA analiza la que está marcada</span>
@@ -1165,6 +1177,20 @@ function CrearInner() {
                     className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 flex items-center justify-center text-gray-400 hover:text-gray-600 transition text-2xl">
                     +
                   </button>
+                </div>
+              </div>
+            )}
+            {/* Preview simple para heladería (una sola foto) */}
+            {rubroId === 'heladeria' && uploadedImages.length > 0 && (
+              <div className="mt-3 flex items-center gap-3">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-orange-400 shadow">
+                  <img src={uploadedImages[0].preview} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p className="text-gray-700 text-sm font-semibold">Cartel subido ✓</p>
+                  <p className="text-gray-400 text-xs">La IA va a leer la promo y generar una imagen linda</p>
+                  <button onClick={() => { setUploadedImages([]); setActiveUploadIdx(0) }}
+                    className="text-red-400 text-xs hover:text-red-600 transition mt-1">Cambiar foto</button>
                 </div>
               </div>
             )}
