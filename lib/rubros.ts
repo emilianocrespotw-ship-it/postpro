@@ -1,4 +1,4 @@
-export type RubroId = 'turismo' | 'inmobiliaria' | 'gastronomia' | 'vinoteca'
+export type RubroId = 'turismo' | 'inmobiliaria' | 'gastronomia' | 'vinoteca' | 'heladeria'
 
 export interface RubroConfig {
   id: RubroId
@@ -224,6 +224,56 @@ Mencioná siempre la marca, varietal, categoría y año si están disponibles. E
     searchQueryHint: 'red wine vineyard cellar elegant dark',
     ctaText: 'Publicá tu vino',
     whatsappText: '¡Hola! Vi el vino que publicaron y me interesa 🍷',
+  },
+  heladeria: {
+    id: 'heladeria',
+    label: 'Heladería',
+    emoji: '🍦',
+    color: 'from-pink-400 to-rose-500',
+    bgColor: 'bg-pink-50',
+    accentColor: '#f43f5e',
+    description: 'Promos, gustos especiales y novedades de tu heladería',
+    inputType: 'both',
+    imageLabel: 'Subí la foto del cartel, pizarrón o promo',
+    formFields: [
+      { key: 'promo', label: 'Promo / Novedad', placeholder: 'Ej: Con 1kg te regalamos 1/2 kg gratis', type: 'text', required: true },
+      { key: 'producto', label: 'Producto / Gusto', placeholder: 'Ej: Nutella, Dulce de leche granizado', type: 'text' },
+      { key: 'precio', label: 'Precio', placeholder: 'Ej: $3500 el kg', type: 'text' },
+      { key: 'vigencia', label: 'Vigencia', placeholder: 'Ej: Solo este fin de semana', type: 'text' },
+      { key: 'local', label: 'Nombre del local', placeholder: 'Ej: Heladería La Abuela', type: 'text' },
+    ],
+    extractionPrompt: `Sos un extractor de datos de carteles y pizarrones de heladerías. Respondé SOLO con JSON puro, sin texto adicional.
+
+REGLAS:
+- "promo": la promoción o novedad principal (ej: "Con la compra de 1kg te regalamos 1/2 kg")
+- "producto": el producto o gusto mencionado (ej: "Nutella", "Dulce de leche") — vacío si no aplica
+- "precio": el precio si aparece claramente (ej: "$3500 el kg") — vacío si no
+- "vigencia": validez temporal si se menciona (ej: "solo hoy", "este fin de semana") — vacío si no
+- "local": nombre del local o marca si aparece — vacío si no
+- "searchQuery": 3-5 palabras en INGLÉS para buscar fotos de heladería ARTESANAL y atractiva. Usá términos como "artisan ice cream gelato colorful scoop", "gelato shop display colorful", "ice cream cone summer". NUNCA el nombre del producto específico.
+
+Formato EXACTO:
+{
+  "promo": "descripción de la promo",
+  "producto": "producto o gusto o vacío",
+  "precio": "precio o vacío",
+  "vigencia": "vigencia o vacío",
+  "local": "nombre del local o vacío",
+  "searchQuery": "atmosphere keywords in english"
+}`,
+    textPrompt: `Sos un community manager rioplatense de una heladería artesanal. Respondé SOLO con JSON válido:
+{"facebook": "...", "instagram": "..."}
+
+Generá textos que transmitan antojo, frescura y tentación. El objetivo es que la gente quiera ir a la heladería ahora mismo.
+- Mencioná la promo de forma clara y atractiva
+- Usá emojis: 🍦 🍨 🍧 😍 🤤 ❄️ ✨ 🎉 💛 📲
+- Tono: cercano, alegre, con onda barrial
+- Facebook: más completo, con la promo bien explicada. Máximo 150 palabras.
+- Instagram: más corto y visual, con hashtags al final: #heladeria #helado #heladoartesanal #antojo #promo (agregá los del producto si hay). Máximo 80 palabras.`,
+    overlayFields: { line1Key: 'promo', line2Key: 'precio', badgeKey: 'producto' },
+    searchQueryHint: 'artisan ice cream gelato colorful scoop',
+    ctaText: 'Publicá tu promo',
+    whatsappText: '¡Hola! Vi la promo de helado y quiero saber más 🍦',
   },
 }
 

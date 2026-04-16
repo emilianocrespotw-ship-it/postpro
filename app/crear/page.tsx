@@ -38,6 +38,7 @@ const RUBRO_FONT: Record<string, string> = {
   turismo:      'Inter, system-ui, sans-serif',
   inmobiliaria: 'Inter, system-ui, sans-serif',
   gastronomia:  'Inter, system-ui, sans-serif',
+  heladeria:    'Inter, system-ui, sans-serif',
 }
 
 // ─── Processing steps (module-level constant) ────────────────────────────────
