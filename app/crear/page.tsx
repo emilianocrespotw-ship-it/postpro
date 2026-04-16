@@ -30,7 +30,7 @@ interface UploadedImage {
   mime: string
 }
 
-const ADMIN_WHATSAPP = '5491100000000' // ← Reemplazar con tu número real
+const ADMIN_WHATSAPP = '54921906798'
 
 // ─── Fuente por rubro ─────────────────────────────────────────────────────────
 const RUBRO_FONT: Record<string, string> = {
