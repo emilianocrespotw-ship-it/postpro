@@ -42,11 +42,18 @@ const RUBRO_FONT: Record<string, string> = {
 }
 
 // ─── Processing steps (module-level constant) ────────────────────────────────
-const PROCESSING_STEPS = [
+const PROCESSING_STEPS_DEFAULT = [
   { emoji: '📸', text: 'Analizando la imagen...' },
   { emoji: '🍷', text: 'Consultando al sommelier...' },
   { emoji: '✍️', text: 'Redactando el texto del post...' },
   { emoji: '🖼️', text: 'Buscando las mejores fotos...' },
+]
+
+const PROCESSING_STEPS_HELADERIA = [
+  { emoji: '📸', text: 'Leyendo el cartel...' },
+  { emoji: '🍦', text: 'Hablando con el maestro gelatero...' },
+  { emoji: '✍️', text: 'Redactando el post...' },
+  { emoji: '🎨', text: 'Generando imágenes con IA...' },
 ]
 
 // ─── StepGrid Component (5 pasos, fila horizontal como PostViajes) ───────────
@@ -166,6 +173,7 @@ function CrearInner() {
   const rubroId = (searchParams.get('rubro') || 'turismo') as RubroId
   const rubro: RubroConfig = RUBROS[rubroId] || RUBROS.turismo
   const overlayFont = RUBRO_FONT[rubroId] || RUBRO_FONT.turismo
+  const PROCESSING_STEPS = rubroId === 'heladeria' ? PROCESSING_STEPS_HELADERIA : PROCESSING_STEPS_DEFAULT
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [step, setStep] = useState<'input' | 'processing' | 'result' | 'preview'>('input')
@@ -765,24 +773,26 @@ function CrearInner() {
               </div>
             </div>
 
-            {/* Logo toggle */}
-            <div className="flex items-center justify-between">
-              <span className="text-gray-700 text-sm">Mostrar logo</span>
-              <button onClick={() => setShowLogo(v => !v)}
-                className={`w-12 h-6 rounded-full transition-colors ${showLogo ? 'bg-green-500' : 'bg-gray-300'}`}>
-                <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${showLogo ? 'translate-x-6' : 'translate-x-0.5'}`} />
-              </button>
-            </div>
-
-            {/* Logo upload */}
-            <div className="flex items-center gap-3">
-              {agencyLogo && <img src={agencyLogo} alt="logo" className="h-8 object-contain" />}
-              <button onClick={() => logoInputRef.current?.click()}
-                className="text-gray-500 text-sm hover:text-gray-700 transition underline">
-                {agencyLogo ? 'Cambiar logo' : 'Subir logo'}
-              </button>
-              <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-            </div>
+            {/* Logo toggle + upload — oculto para heladería */}
+            {rubroId !== 'heladeria' && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-700 text-sm">Mostrar logo</span>
+                  <button onClick={() => setShowLogo(v => !v)}
+                    className={`w-12 h-6 rounded-full transition-colors ${showLogo ? 'bg-green-500' : 'bg-gray-300'}`}>
+                    <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${showLogo ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-3">
+                  {agencyLogo && <img src={agencyLogo} alt="logo" className="h-8 object-contain" />}
+                  <button onClick={() => logoInputRef.current?.click()}
+                    className="text-gray-500 text-sm hover:text-gray-700 transition underline">
+                    {agencyLogo ? 'Cambiar logo' : 'Subir logo'}
+                  </button>
+                  <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                </div>
+              </>
+            )}
           </div>
 
           {/* Photo grid */}
