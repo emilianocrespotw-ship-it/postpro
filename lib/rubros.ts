@@ -216,10 +216,10 @@ Respondé SOLO con JSON válido con esta estructura exacta (sin texto fuera del 
   "enologist": "",
   "story": "",
   "cta": "",
-  "facebook": "Post completo e integrado para Facebook. Estructura sugerida: 1) Abrí con la marca y varietal en negrita (MARCA — VARIETAL). 2) Año, categoría y precio si hay. 3) Notas de cata: describí color, aromas y boca de forma evocadora. 4) Historia, origen o anécdota de la bodega que genere conexión. 5) Maridaje sugerido. 6) CTA final. Usá emojis naturalmente a lo largo del texto: 🍷🍇🥂✨🌿🥩🧀🫐🌹. Tono sofisticado y rioplatense. Máximo 200 palabras.",
-  "instagram": "Versión más corta y visual. Estructura: marca + varietal destacados, notas de cata en 2-3 líneas, dato de historia o maridaje en 1-2 líneas, CTA en 1 línea, hashtags al final. Usá emojis con generosidad: 🍷🍇✨🥂🌿🫐🥩🌹. Hashtags: #vino #vinoteca #malbec #argentina #sommelier #vinoargentino más los del varietal y bodega. Máximo 130 palabras."
+  "facebook": "Post completo para Facebook con estas secciones claramente incluidas en el texto:\\n\\nEmpezá con MARCA — VARIETAL en mayúsculas, año y categoría si hay. Precio si está disponible.\\n\\nLuego escribí un párrafo que empiece con '🍷 Notas del enólogo:' describiendo el método de crianza, el color, los aromas en nariz y la boca con vocabulario técnico pero accesible.\\n\\nSeguí con un párrafo que empiece con '✨ Historia y maridaje:' contando el origen de la bodega, el terruño, y con qué platos marida perfectamente.\\n\\nTerminá con CTA de 1 línea.\\n\\nUsá emojis naturalmente a lo largo del texto: 🍷🍇🥂✨🌿🥩🧀🫐🌹🏔️. Tono sofisticado y rioplatense. Mínimo 180 palabras.",
+  "instagram": "Post para Instagram. Estructura:\\n\\nAbrí con MARCA + VARIETAL + año destacados. Luego 2-3 líneas de notas de cata ('Notas del enólogo:') con emojis. Después 2-3 líneas de historia y maridaje ('Historia y maridaje:') que generen deseo. CTA en 1 línea. Hashtags al final.\\n\\nUsá emojis generosamente: 🍷🍇✨🥂🌿🫐🥩🌹🏔️. Hashtags: #vino #vinoteca #malbec #argentina #sommelier #vinoargentino más los del varietal y bodega. Mínimo 100 palabras antes de los hashtags."
 }
-El post es TODO — notas, historia y maridaje van DENTRO del facebook e instagram, no aparte. Mencioná siempre marca, varietal, categoría y año si están disponibles. Estilo rioplatense sofisticado.`,
+Los campos enologist, story y cta van vacíos — todo va dentro de facebook e instagram. Mencioná siempre marca, varietal, categoría y año si están disponibles. Estilo rioplatense sofisticado.`,
     overlayFields: { line1Key: 'varietal', line2Key: 'marca', badgeKey: 'categoria' },
     searchQueryHint: 'red wine vineyard cellar elegant dark',
     ctaText: 'Publicá tu vino',

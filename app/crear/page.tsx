@@ -207,6 +207,9 @@ function CrearInner() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
+  // Pre-computed canvas blob para evitar expiración de gesto en iOS
+  const precomputedBlobRef = useRef<Blob | null>(null)
+  const precomputedKeyRef = useRef<string>('')
 
   const currentFilter = FILTERS.find(f => f.id === selectedFilter) || FILTERS[0]
   const activeImage = uploadedImages[activeUploadIdx] || null
@@ -591,6 +594,22 @@ function CrearInner() {
     if (step === 'preview') renderCanvas()
   }, [step, renderCanvas])
 
+  // Pre-renderizar canvas cuando cambia la foto seleccionada en result step
+  // para que el blob esté listo antes del tap de compartir (iOS user gesture timeout)
+  useEffect(() => {
+    if (step !== 'result' || !selectedPhoto || !canvasRef.current) return
+    const key = `${selectedPhoto}|${selectedFilter}|${showLogo}`
+    if (precomputedKeyRef.current === key) return
+    precomputedKeyRef.current = key
+    precomputedBlobRef.current = null
+    renderCanvas().then(() => {
+      if (!canvasRef.current) return
+      canvasRef.current.toBlob(blob => {
+        if (blob) precomputedBlobRef.current = blob
+      }, 'image/jpeg', 0.92)
+    }).catch(() => {})
+  }, [step, selectedPhoto, selectedFilter, showLogo, renderCanvas])
+
   // ── Share ──────────────────────────────────────────────────────────────────
   const shareImage = async () => {
     if (!canvasRef.current) return
@@ -913,14 +932,19 @@ function CrearInner() {
     // Compartir imagen + texto via navigator.share (WhatsApp nativo en mobile)
     const shareViaWhatsApp = async () => {
       const text = buildFullText('instagram')
-      if (canvasRef.current && navigator.share) {
+      if (navigator.share) {
         try {
-          await renderCanvas()
-          const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.92)
-          const blob = await (await fetch(dataUrl)).blob()
-          const file = new File([blob], `post-${rubroId}.jpg`, { type: 'image/jpeg' })
-          if (navigator.canShare?.({ files: [file] })) {
-            await navigator.share({ files: [file], text }); return
+          // Usar blob pre-computado para no expirar el gesto de usuario en iOS
+          const blob = precomputedBlobRef.current
+            ?? await (canvasRef.current
+              ? (await renderCanvas(), await new Promise<Blob | null>(res =>
+                  canvasRef.current!.toBlob(res, 'image/jpeg', 0.92)))
+              : null)
+          if (blob) {
+            const file = new File([blob], `post-${rubroId}.jpg`, { type: 'image/jpeg' })
+            if (navigator.canShare?.({ files: [file] })) {
+              await navigator.share({ files: [file], text }); return
+            }
           }
         } catch {}
       }
