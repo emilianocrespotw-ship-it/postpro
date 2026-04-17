@@ -897,15 +897,9 @@ function CrearInner() {
   // RESULT STEP
   // ─────────────────────────────────────────────────────────────────────────
   if (step === 'result' && result) {
-    // Texto completo: incluye notas del enólogo + historia + texto base
+    // Texto completo: el post ya incluye todo integrado
     const buildFullText = (network: 'facebook' | 'instagram') => {
-      const base = network === 'facebook' ? result.textFacebook : result.textInstagram
-      if (rubroId !== 'vinoteca') return base
-      const parts: string[] = []
-      if (result.enologist) parts.push(result.enologist)
-      if (result.story) parts.push(result.story)
-      parts.push(base)
-      return parts.join('\n\n')
+      return network === 'facebook' ? result.textFacebook : result.textInstagram
     }
 
     const shareText = buildFullText(activeTab)
@@ -1013,23 +1007,7 @@ function CrearInner() {
             </div>
           </div>
 
-          {/* ── Enólogo + Historia (vinoteca) ── */}
-          {rubroId === 'vinoteca' && (result.enologist || result.story) && (
-            <div className="space-y-2 mb-3">
-              {result.enologist && (
-                <div className="bg-white border-l-4 border-purple-500 rounded-2xl px-4 py-3 shadow-sm">
-                  <p className="text-purple-700 text-[10px] font-bold uppercase tracking-widest mb-1.5">🍷 Notas del enólogo</p>
-                  <p className="text-gray-700 text-sm leading-relaxed">{result.enologist}</p>
-                </div>
-              )}
-              {result.story && (
-                <div className="bg-white border-l-4 border-rose-500 rounded-2xl px-4 py-3 shadow-sm">
-                  <p className="text-rose-700 text-[10px] font-bold uppercase tracking-widest mb-1.5">✨ Historia y maridaje</p>
-                  <p className="text-gray-700 text-sm leading-relaxed">{result.story}</p>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Notas del enólogo e historia ahora van integradas dentro del post */}
 
           {/* ── Texto para copiar ── */}
           <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden mb-3 shadow-sm">

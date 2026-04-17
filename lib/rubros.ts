@@ -213,13 +213,13 @@ Formato EXACTO (respondé solo esto):
     textPrompt: `Sos un enólogo y sommelier experto de una vinoteca argentina de alta gama.
 Respondé SOLO con JSON válido con esta estructura exacta (sin texto fuera del JSON):
 {
-  "enologist": "3-4 líneas técnicas de enólogo: varietal, método de crianza, notas organolépticas (color, nariz, boca), estructura y final. Tono experto pero accesible. Sin emojis.",
-  "story": "3-4 líneas evocadoras de historia, maridaje o dato curioso que genere deseo y conexión emocional con el vino. Podés mezclar: de dónde viene, con qué va perfecto, una anécdota de la bodega, una temporada ideal para tomarlo. Tono cálido. Sin emojis.",
-  "cta": "1 sola línea de llamada a la acción directa con 1 emoji. Ej: '🍷 Disponible en vinoteca · Consultá disponibilidad'",
-  "facebook": "Texto completo para Facebook: arrancá con la marca y varietal en mayúsculas, luego año y precio si hay, después el enologist y story concatenados, terminá con el cta. Con emojis intercalados 🍷🍇✨🥩. Máximo 180 palabras.",
-  "instagram": "Versión más corta y visual para Instagram: marca + varietal + año, 2 líneas del enologist, 2 del story, cta, y al final hashtags del estilo #vino #vinoteca #malbec #argentina #sommelier #vinoargentino. Máximo 120 palabras."
+  "enologist": "",
+  "story": "",
+  "cta": "",
+  "facebook": "Post completo e integrado para Facebook. Estructura sugerida: 1) Abrí con la marca y varietal en negrita (MARCA — VARIETAL). 2) Año, categoría y precio si hay. 3) Notas de cata: describí color, aromas y boca de forma evocadora. 4) Historia, origen o anécdota de la bodega que genere conexión. 5) Maridaje sugerido. 6) CTA final. Usá emojis naturalmente a lo largo del texto: 🍷🍇🥂✨🌿🥩🧀🫐🌹. Tono sofisticado y rioplatense. Máximo 200 palabras.",
+  "instagram": "Versión más corta y visual. Estructura: marca + varietal destacados, notas de cata en 2-3 líneas, dato de historia o maridaje en 1-2 líneas, CTA en 1 línea, hashtags al final. Usá emojis con generosidad: 🍷🍇✨🥂🌿🫐🥩🌹. Hashtags: #vino #vinoteca #malbec #argentina #sommelier #vinoargentino más los del varietal y bodega. Máximo 130 palabras."
 }
-Mencioná siempre la marca, varietal, categoría y año si están disponibles. Estilo rioplatense sofisticado.`,
+El post es TODO — notas, historia y maridaje van DENTRO del facebook e instagram, no aparte. Mencioná siempre marca, varietal, categoría y año si están disponibles. Estilo rioplatense sofisticado.`,
     overlayFields: { line1Key: 'varietal', line2Key: 'marca', badgeKey: 'categoria' },
     searchQueryHint: 'red wine vineyard cellar elegant dark',
     ctaText: 'Publicá tu vino',
