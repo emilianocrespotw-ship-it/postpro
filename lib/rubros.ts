@@ -245,10 +245,17 @@ Mencioná siempre la marca, varietal, categoría y año si están disponibles. E
     extractionPrompt: `Sos un experto en leer carteles, pizarrones y chalkboards de heladerías artesanales, incluyendo escritura a mano con tiza. Respondé SOLO con JSON puro, sin texto adicional.
 
 INSTRUCCIONES DE LECTURA:
-- Los carteles pueden estar escritos a mano con tiza sobre pizarrón negro o verde. Leelos con atención.
-- Si hay texto parcialmente borroso o difícil, intentá inferir el mensaje más probable en contexto de heladería.
+- Los carteles pueden estar escritos a mano con tiza sobre pizarrón negro o verde. Leelos con mucha atención.
+- Si hay texto parcialmente borroso, intentá inferir el mensaje más probable en contexto de heladería argentina.
 - No confundas precios con nombres de productos. Los precios suelen tener "$" o "pesos" o un número aislado.
 - Si hay múltiples promos, tomá la más destacada (más grande o subrayada).
+
+PRECIOS ARGENTINOS — MUY IMPORTANTE:
+- En Argentina el punto "." es separador de miles y la coma "," es decimal.
+- $1.400 significa MIL CUATROCIENTOS pesos (no 1.40). $14.600 = catorce mil seiscientos pesos.
+- Los helados artesanales en Argentina cuestan entre $1.000 y $30.000 el kilo. NUNCA menos de $100.
+- Si ves algo como "$1.46" ó "$2.35" es imposible — seguramente es "$1.460" ó "$2.350" y el punto decimal del PDF/foto se confundió.
+- Copiá el precio TAL CUAL aparece escrito en el cartel, respetando el formato original.
 
 CAMPOS:
 - "promo": la promoción o novedad principal. Si no hay promo explícita pero hay un producto nuevo o destacado, ponelo como "Nuevo: [nombre]". Nunca vacío.

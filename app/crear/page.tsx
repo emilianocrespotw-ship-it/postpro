@@ -365,17 +365,23 @@ function CrearInner() {
 
     // Cargar fuente correcta para canvas según rubro
     let font = 'Inter, sans-serif'
+    let titleWeight = 900  // Caveat solo tiene 400/700 — se sobreescribe abajo
     if (isVino) {
       try { await document.fonts.load('900 80px "Playfair Display"') } catch {}
       font = '"Playfair Display", Georgia, serif'
     } else if (isHeladeria) {
-      // Caveat (tiza): leer nombre real de CSS var
+      // Caveat (tiza): Next.js asigna nombre interno — tomamos el primero de la CSS var
       const caveatCssFont = getComputedStyle(document.body).getPropertyValue('--font-caveat').trim()
-      const caveatFont = caveatCssFont || '"Caveat"'
+      const caveatInternal = caveatCssFont.split(',')[0].trim() || 'Caveat'
+      // Caveat solo soporta weight 400–700; no 900 ni 600
+      titleWeight = 700
       try {
-        await document.fonts.load(`700 96px ${caveatFont}`)
+        await document.fonts.load(`700 96px ${caveatInternal}`)
+        await document.fonts.load(`400 42px ${caveatInternal}`)
       } catch {}
-      font = `${caveatFont}, cursive`
+      // Fallback: cargar por nombre público (si está disponible vía @import)
+      try { await document.fonts.load('700 96px Caveat') } catch {}
+      font = `${caveatInternal}, 'Caveat', cursive`
     }
 
     // ── Layout vinoteca: foto principal + franja derecha (estilo Salentein) ──
@@ -525,8 +531,8 @@ function CrearInner() {
       const MAX_W = W - 80
 
       let fs = 96
-      ctx.font = `900 ${fs}px ${font}`
-      while (ctx.measureText(line1).width > MAX_W && fs > 40) { fs -= 4; ctx.font = `900 ${fs}px ${font}` }
+      ctx.font = `${titleWeight} ${fs}px ${font}`
+      while (ctx.measureText(line1).width > MAX_W && fs > 40) { fs -= 4; ctx.font = `${titleWeight} ${fs}px ${font}` }
 
       let textY = H * 0.74
       const words = line1.split(' ')
@@ -535,9 +541,9 @@ function CrearInner() {
         const l1 = words.slice(0, mid).join(' ')
         const l2 = words.slice(mid).join(' ')
         let fs2 = 80
-        ctx.font = `900 ${fs2}px ${font}`
+        ctx.font = `${titleWeight} ${fs2}px ${font}`
         const longest = l1.length > l2.length ? l1 : l2
-        while (ctx.measureText(longest).width > MAX_W && fs2 > 32) { fs2 -= 4; ctx.font = `900 ${fs2}px ${font}` }
+        while (ctx.measureText(longest).width > MAX_W && fs2 > 32) { fs2 -= 4; ctx.font = `${titleWeight} ${fs2}px ${font}` }
         textY = H * 0.68
         ctx.fillText(l1, W / 2, textY)
         ctx.fillText(l2, W / 2, textY + fs2 + 10)
@@ -548,7 +554,7 @@ function CrearInner() {
 
       if (line2) {
         ctx.shadowBlur = 0
-        ctx.font = `700 42px ${font}`
+        ctx.font = `${isHeladeria ? 400 : 700} 42px ${font}`
         ctx.fillStyle = 'rgba(255,255,255,0.85)'
         ctx.fillText(line2, W / 2, textY + 54)
         textY = textY + 54
@@ -556,7 +562,7 @@ function CrearInner() {
 
       if (priceLine) {
         ctx.shadowBlur = 0
-        ctx.font = `600 30px ${font}`
+        ctx.font = `${isHeladeria ? 400 : 600} 30px ${font}`
         ctx.fillStyle = 'rgba(255,255,255,0.7)'
         ctx.fillText(priceLine, W / 2, textY + 44)
       }

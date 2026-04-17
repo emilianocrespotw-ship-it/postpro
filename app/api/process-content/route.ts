@@ -160,12 +160,13 @@ export async function POST(req: NextRequest) {
 
       // Construir prompt para imagen generada por IA
       const aiPromptParts = [
-        'artisan ice cream gelato shop',
-        producto ? `${producto} flavor gelato closeup` : 'fresh gelato scoops in a cup',
-        'natural warm light, soft bokeh, rustic wooden counter',
-        'muted earthy tones, cream white beige brown, cozy atmosphere',
-        'professional food photography, shallow depth of field',
-        'NO text, NO overlays, NO neon colors, NO pink',
+        'artisan gelato ice cream',
+        producto ? `${producto} flavor ice cream` : 'colorful gelato scoops',
+        Math.random() > 0.5 ? 'served in a waffle cone' : 'in a styrofoam cup with wooden spoon',
+        'natural warm light, rustic wooden counter background',
+        'muted tones, cream beige warm brown, soft bokeh',
+        'professional food photography, appetizing, close-up',
+        'NO text overlays, NO neon, NO hot pink',
       ]
       const aiPrompt = aiPromptParts.join(', ')
 
