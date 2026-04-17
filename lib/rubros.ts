@@ -242,15 +242,20 @@ Mencioná siempre la marca, varietal, categoría y año si están disponibles. E
       { key: 'vigencia', label: 'Vigencia', placeholder: 'Ej: Solo este fin de semana', type: 'text' },
       { key: 'local', label: 'Nombre del local', placeholder: 'Ej: Heladería La Abuela', type: 'text' },
     ],
-    extractionPrompt: `Sos un extractor de datos de carteles y pizarrones de heladerías. Respondé SOLO con JSON puro, sin texto adicional.
+    extractionPrompt: `Sos un experto en leer carteles, pizarrones y chalkboards de heladerías artesanales, incluyendo escritura a mano con tiza. Respondé SOLO con JSON puro, sin texto adicional.
 
-REGLAS:
-- "promo": la promoción o novedad principal (ej: "Con la compra de 1kg te regalamos 1/2 kg")
-- "producto": el producto o gusto mencionado (ej: "Nutella", "Dulce de leche") — vacío si no aplica
-- "precio": el precio si aparece claramente (ej: "$3500 el kg") — vacío si no
+INSTRUCCIONES DE LECTURA:
+- Los carteles pueden estar escritos a mano con tiza sobre pizarrón negro o verde. Leelos con atención.
+- Si hay texto parcialmente borroso o difícil, intentá inferir el mensaje más probable en contexto de heladería.
+- No confundas precios con nombres de productos. Los precios suelen tener "$" o "pesos" o un número aislado.
+- Si hay múltiples promos, tomá la más destacada (más grande o subrayada).
+
+CAMPOS:
+- "promo": la promoción o novedad principal. Si no hay promo explícita pero hay un producto nuevo o destacado, ponelo como "Nuevo: [nombre]". Nunca vacío.
+- "producto": el gusto, sabor o producto destacado (ej: "Nutella", "Dulce de leche con brownie", "Maracuyá") — vacío si no se menciona
+- "precio": precio si aparece claramente (ej: "$3500 el kg", "2x1 $800") — vacío si no
 - "vigencia": validez temporal si se menciona (ej: "solo hoy", "este fin de semana") — vacío si no
-- "local": nombre del local o marca si aparece — vacío si no
-- "searchQuery": 3-5 palabras en INGLÉS para buscar fotos de heladería ARTESANAL y atractiva. Usá términos como "artisan ice cream gelato colorful scoop", "gelato shop display colorful", "ice cream cone summer". NUNCA el nombre del producto específico.
+- "local": nombre del local o heladería si aparece — vacío si no
 
 Formato EXACTO:
 {
@@ -258,8 +263,7 @@ Formato EXACTO:
   "producto": "producto o gusto o vacío",
   "precio": "precio o vacío",
   "vigencia": "vigencia o vacío",
-  "local": "nombre del local o vacío",
-  "searchQuery": "atmosphere keywords in english"
+  "local": "nombre del local o vacío"
 }`,
     textPrompt: `Sos un community manager rioplatense de una heladería artesanal. Respondé SOLO con JSON válido:
 {"facebook": "...", "instagram": "..."}

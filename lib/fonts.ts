@@ -1,4 +1,4 @@
-import { Inter, Playfair_Display, Bebas_Neue } from 'next/font/google'
+import { Inter, Playfair_Display, Bebas_Neue, Caveat } from 'next/font/google'
 
 export const inter = Inter({ subsets: ['latin'] })
 
@@ -14,5 +14,12 @@ export const bebasNeue = Bebas_Neue({
   subsets: ['latin'],
   weight: '400',
   variable: '--font-bebas',
+  display: 'swap',
+})
+
+export const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-caveat',
   display: 'swap',
 })

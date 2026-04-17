@@ -6,6 +6,7 @@ const ALLOWED_DOMAINS = [
   'images.unsplash.com',
   'supabase.co',
   'supabase.in',
+  'image.pollinations.ai',
 ]
 
 export async function GET(req: NextRequest) {

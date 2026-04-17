@@ -38,7 +38,7 @@ const RUBRO_FONT: Record<string, string> = {
   turismo:      'Inter, system-ui, sans-serif',
   inmobiliaria: 'Inter, system-ui, sans-serif',
   gastronomia:  'Inter, system-ui, sans-serif',
-  heladeria:    '"Bebas Neue", Impact, sans-serif',
+  heladeria:    '"Caveat", cursive',
 }
 
 // ─── Processing steps (module-level constant) ────────────────────────────────
@@ -369,13 +369,13 @@ function CrearInner() {
       try { await document.fonts.load('900 80px "Playfair Display"') } catch {}
       font = '"Playfair Display", Georgia, serif'
     } else if (isHeladeria) {
-      // Bebas Neue: leer nombre real que asignó Next.js desde CSS var
-      const bebasCssFont = getComputedStyle(document.body).getPropertyValue('--font-bebas').trim()
-      const bebasFont = bebasCssFont || '"Bebas Neue"'
+      // Caveat (tiza): leer nombre real de CSS var
+      const caveatCssFont = getComputedStyle(document.body).getPropertyValue('--font-caveat').trim()
+      const caveatFont = caveatCssFont || '"Caveat"'
       try {
-        await document.fonts.load(`400 96px ${bebasFont}`)
+        await document.fonts.load(`700 96px ${caveatFont}`)
       } catch {}
-      font = `${bebasFont}, Impact, sans-serif`
+      font = `${caveatFont}, cursive`
     }
 
     // ── Layout vinoteca: foto principal + franja derecha (estilo Salentein) ──
@@ -561,7 +561,7 @@ function CrearInner() {
         ctx.fillText(priceLine, W / 2, textY + 44)
       }
 
-      if (showLogo && agencyLogo) {
+      if (showLogo && agencyLogo && !isHeladeria) {
         const BH = Math.round(H * 0.12)
         ctx.fillStyle = 'rgba(0,0,0,0.55)'
         ctx.fillRect(0, 0, W, BH)
@@ -725,7 +725,7 @@ function CrearInner() {
               )}
               <div className="absolute inset-0"
                 style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.92) 100%)' }} />
-              {showLogo && agencyLogo && (
+              {showLogo && agencyLogo && rubroId !== 'heladeria' && (
                 <div className="absolute top-0 left-0 right-0 bg-black/55 flex items-center justify-center" style={{ height: '12%' }}>
                   <img src={agencyLogo} alt="logo" className="h-full py-1 max-w-[260px] object-contain" />
                 </div>

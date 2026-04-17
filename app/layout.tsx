@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Providers from './providers'
-import { inter, playfair, bebasNeue } from '@/lib/fonts'
+import { inter, playfair, bebasNeue, caveat } from '@/lib/fonts'
 
 export const metadata: Metadata = {
   title: 'PostPro — Posts profesionales para tu negocio',
@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body className={`${inter.className} ${playfair.variable} ${bebasNeue.variable}`}>
+      <body className={`${inter.className} ${playfair.variable} ${bebasNeue.variable} ${caveat.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>
