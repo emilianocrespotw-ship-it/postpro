@@ -39,25 +39,79 @@ const RUBRO_FONT: Record<string, string> = {
   inmobiliaria: 'Inter, system-ui, sans-serif',
   gastronomia:  'Inter, system-ui, sans-serif',
   heladeria:    '"Caveat", cursive',
+  receptivo:    'Inter, system-ui, sans-serif',
 }
 
-// ─── Processing steps (module-level constant) ────────────────────────────────
-const PROCESSING_STEPS_DEFAULT = [
-  { emoji: '📸', text: 'Analizando la imagen...' },
-  { emoji: '🍷', text: 'Consultando al sommelier...' },
-  { emoji: '✍️', text: 'Redactando el texto del post...' },
-  { emoji: '🖼️', text: 'Buscando las mejores fotos...' },
-]
+// ─── Processing steps por rubro: cada rubro tiene su especialista ────────────
+const PROCESSING_STEPS_BY_RUBRO: Record<RubroId, { emoji: string; text: string }[]> = {
+  turismo: [
+    { emoji: '📸', text: 'Leyendo el flyer...' },
+    { emoji: '🗺️', text: 'Hablando con el operador turístico...' },
+    { emoji: '✍️', text: 'Redactando el texto del post...' },
+    { emoji: '🖼️', text: 'Buscando las mejores fotos del destino...' },
+  ],
+  inmobiliaria: [
+    { emoji: '📸', text: 'Analizando la propiedad...' },
+    { emoji: '🏠', text: 'Hablando con el corredor inmobiliario...' },
+    { emoji: '✍️', text: 'Redactando la ficha de la propiedad...' },
+    { emoji: '🖼️', text: 'Buscando fotos ambientadas...' },
+  ],
+  gastronomia: [
+    { emoji: '📸', text: 'Mirando bien el plato...' },
+    { emoji: '👨‍🍳', text: 'Charlando con el chef...' },
+    { emoji: '✍️', text: 'Redactando el menú del día...' },
+    { emoji: '🖼️', text: 'Buscando fotos apetitosas...' },
+  ],
+  vinoteca: [
+    { emoji: '📸', text: 'Analizando la etiqueta...' },
+    { emoji: '🍷', text: 'Consultando al sommelier...' },
+    { emoji: '✍️', text: 'Redactando las notas de cata...' },
+    { emoji: '🖼️', text: 'Buscando fotos del viñedo...' },
+  ],
+  heladeria: [
+    { emoji: '📸', text: 'Leyendo el cartel...' },
+    { emoji: '🍦', text: 'Hablando con el maestro heladero...' },
+    { emoji: '✍️', text: 'Redactando el post...' },
+    { emoji: '🎨', text: 'Generando imágenes con IA...' },
+  ],
+  receptivo: [
+    { emoji: '📸', text: 'Analizando el flyer...' },
+    { emoji: '🐋', text: 'Consultando al guía de aventura...' },
+    { emoji: '✍️', text: 'Redactando el post de la excursión...' },
+    { emoji: '🖼️', text: 'Buscando fotos del destino...' },
+  ],
+}
 
-const PROCESSING_STEPS_HELADERIA = [
-  { emoji: '📸', text: 'Leyendo el cartel...' },
-  { emoji: '🍦', text: 'Hablando con el maestro gelatero...' },
-  { emoji: '✍️', text: 'Redactando el post...' },
-  { emoji: '🎨', text: 'Generando imágenes con IA...' },
-]
+// ─── Logos de redes sociales (SVG inline, colores oficiales) ──────────────────
+function FacebookIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path fill="currentColor" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  )
+}
+
+function InstagramIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path fill="currentColor" d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+    </svg>
+  )
+}
+
+function WhatsAppIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path fill="currentColor" d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.371-.025-.52-.075-.149-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+    </svg>
+  )
+}
+
+// ─── Tipo de paso del flujo ──────────────────────────────────────────────────
+type CrearStep = 'input' | 'processing' | 'result' | 'preview' | 'publish'
 
 // ─── StepGrid Component (5 pasos, fila horizontal como PostViajes) ───────────
-function StepGrid({ currentStep }: { currentStep: 'input' | 'processing' | 'result' | 'preview' }) {
+function StepGrid({ currentStep }: { currentStep: CrearStep }) {
   const steps = [
     { number: 1, emoji: '📷', label: 'Subís la foto' },
     { number: 2, emoji: '🤖', label: 'IA analiza y escribe el post' },
@@ -71,7 +125,8 @@ function StepGrid({ currentStep }: { currentStep: 'input' | 'processing' | 'resu
     currentStep === 'input'      ? 1 :
     currentStep === 'processing' ? 2 :
     currentStep === 'result'     ? 3 :
-    /* preview */                  4
+    currentStep === 'preview'    ? 4 :
+    /* publish */                  5
 
   const completedSteps = Array.from({ length: activeStepNum - 1 }, (_, i) => i + 1)
 
@@ -82,7 +137,7 @@ function StepGrid({ currentStep }: { currentStep: 'input' | 'processing' | 'resu
         {steps.map(step => {
           const isCompleted = completedSteps.includes(step.number)
           const isActive = step.number === activeStepNum
-          const isPending = step.number > activeStepNum && !(currentStep === 'preview' && step.number === 5)
+          const isPending = step.number > activeStepNum
 
           return (
             <div key={step.number}
@@ -173,10 +228,10 @@ function CrearInner() {
   const rubroId = (searchParams.get('rubro') || 'turismo') as RubroId
   const rubro: RubroConfig = RUBROS[rubroId] || RUBROS.turismo
   const overlayFont = RUBRO_FONT[rubroId] || RUBRO_FONT.turismo
-  const PROCESSING_STEPS = rubroId === 'heladeria' ? PROCESSING_STEPS_HELADERIA : PROCESSING_STEPS_DEFAULT
+  const PROCESSING_STEPS = PROCESSING_STEPS_BY_RUBRO[rubroId] || PROCESSING_STEPS_BY_RUBRO.turismo
 
   // ── State ──────────────────────────────────────────────────────────────────
-  const [step, setStep] = useState<'input' | 'processing' | 'result' | 'preview'>('input')
+  const [step, setStep] = useState<CrearStep>('input')
   const [inputMode, setInputMode] = useState<'image' | 'form'>('image')
 
   // Multi-image upload
@@ -189,7 +244,8 @@ function CrearInner() {
 
   // Photo / overlay state
   const [selectedPhoto, setSelectedPhoto] = useState('')
-  const [photoList, setPhotoList] = useState<string[]>([])  // editable en preview
+  const [photoList, setPhotoList] = useState<string[]>([])
+  const [photoIdx, setPhotoIdx] = useState(0)           // índice del carrusel en paso "result"
   const [selectedFilter, setSelectedFilter] = useState('none')
   const [agencyLogo, setAgencyLogo] = useState('')
   const [showLogo, setShowLogo] = useState(true)
@@ -346,7 +402,9 @@ function CrearInner() {
       setProcessingStepIdx(PROCESSING_STEPS.length - 1)
       setResult({ ...data, images: resolvedImages })
       setPhotoList(resolvedImages)
+      setPhotoIdx(0)
       setSelectedPhoto(resolvedImages[0] || '')
+      setSelectedFilter('none')
       setStep('result')
     } catch (err: any) {
       clearInterval(stepInterval)
@@ -591,13 +649,13 @@ function CrearInner() {
   }, [result, selectedPhoto, selectedFilter, showLogo, agencyLogo, currentFilter, rubroId])
 
   useEffect(() => {
-    if (step === 'preview') renderCanvas()
+    if (step === 'preview' || step === 'publish') renderCanvas()
   }, [step, renderCanvas])
 
-  // Pre-renderizar canvas cuando cambia la foto seleccionada en result step
-  // para que el blob esté listo antes del tap de compartir (iOS user gesture timeout)
+  // Pre-renderizar canvas en el paso "publish" para tener el blob listo
+  // antes del tap de compartir (iOS user gesture timeout).
   useEffect(() => {
-    if (step !== 'result' || !selectedPhoto || !canvasRef.current) return
+    if (step !== 'publish' || !selectedPhoto || !canvasRef.current) return
     const key = `${selectedPhoto}|${selectedFilter}|${showLogo}`
     if (precomputedKeyRef.current === key) return
     precomputedKeyRef.current = key
@@ -820,121 +878,43 @@ function CrearInner() {
             )}
           </div>
 
-          {/* Photo grid */}
-          {photoList.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider">Elegí la foto</p>
-                <p className="text-gray-400 text-xs">Tocá ✕ para sacar las que no te gustan</p>
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                {photoList.map((url, i) => {
-                  const isDataUrl = url.startsWith('data:')
-                  const isSavedPhoto = !isDataUrl && url.includes('supabase')
-                  const isSelected = selectedPhoto === url
-                  return (
-                    <div key={i} className="relative aspect-square">
-                      <button onClick={() => setSelectedPhoto(url)}
-                        className={`w-full h-full rounded-xl overflow-hidden border-2 transition block ${isSelected ? 'border-orange-500' : 'border-transparent opacity-70 hover:opacity-100'}`}>
-                        <img src={url} alt="" className="w-full h-full object-cover" />
-                        {isDataUrl && (
-                          <span className="absolute top-1 left-1 bg-purple-600 text-white text-[9px] px-1 rounded font-bold">NUEVA</span>
-                        )}
-                        {isSavedPhoto && (
-                          <span className="absolute top-1 left-1 bg-emerald-600 text-white text-[9px] px-1 rounded font-bold">📚</span>
-                        )}
-                      </button>
-                      {/* X para borrar de la lista */}
-                      <button
-                        onClick={() => {
-                          const next = photoList.filter((_, j) => j !== i)
-                          setPhotoList(next)
-                          if (isSelected) setSelectedPhoto(next[0] || '')
-                        }}
-                        className="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 text-white w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold shadow transition z-10">
-                        ✕
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── Botones de compartir ── */}
-          <div className="space-y-2 mb-3">
-            <button onClick={shareImage}
-              className="w-full bg-[#1877F2] hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
-              👍 Publicá en Facebook
-            </button>
-            <button onClick={shareImage}
-              className="w-full text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
-              📸 Publicá en Instagram
-            </button>
-            <a href={`https://wa.me/?text=${encodeURIComponent(result?.textInstagram || result?.textFacebook || '')}`}
-              target="_blank" rel="noopener noreferrer"
-              className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
-              💬 Compartí por WhatsApp
-            </a>
-          </div>
-
-          <p className="text-center text-gray-400 text-xs mb-4">
-            FB e IG: la imagen se descarga y el texto se copia — pegalo en la app junto con la foto
-          </p>
+          {/* CTA principal: usar este estilo → pasa a "publish" */}
+          <button onClick={() => setStep('publish')}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 rounded-2xl text-base transition active:scale-95 shadow-lg mb-3">
+            Usar este estilo →
+          </button>
 
           <button onClick={() => setStep('input')}
             className="w-full text-center text-gray-400 text-sm hover:text-gray-600 transition py-2">
             Empezar de nuevo
           </button>
 
-          {/* Step 5 activo = Publicalo */}
-          <div className="mt-8 mb-4">
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {[
-                { n:1, e:'📷', l:'Subís la foto' },
-                { n:2, e:'🤖', l:'IA analiza y escribe el post' },
-                { n:3, e:'🖼️', l:'Elegí la foto' },
-                { n:4, e:'🎨', l:'Elegí el estilo' },
-                { n:5, e:'🚀', l:'Publicalo en redes' },
-              ].map(s => (
-                <div key={s.n} className={`flex-shrink-0 flex flex-col items-center justify-center rounded-2xl border p-3 transition-all w-[18%] min-w-[64px] ${
-                  s.n < 5 ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 shadow-sm'
-                }`}>
-                  <div className={`text-xl mb-1 ${s.n < 5 ? 'text-green-500' : ''}`}>{s.n < 5 ? '✓' : s.e}</div>
-                  <p className={`text-[10px] font-semibold text-center leading-tight ${s.n < 5 ? 'text-green-700' : 'text-gray-900'}`}>{s.l}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <StepGrid currentStep="preview" />
         </div>
       </div>
     )
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // RESULT STEP
+  // PUBLISH STEP — Texto + botones de compartir con logos oficiales
   // ─────────────────────────────────────────────────────────────────────────
-  if (step === 'result' && result) {
-    // Texto completo: el post ya incluye todo integrado
-    const buildFullText = (network: 'facebook' | 'instagram') => {
-      return network === 'facebook' ? result.textFacebook : result.textInstagram
-    }
+  if (step === 'publish' && result) {
+    const buildFullText = (network: 'facebook' | 'instagram') =>
+      network === 'facebook' ? result.textFacebook : result.textInstagram
 
     const shareText = buildFullText(activeTab)
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(buildFullText('instagram'))}`
 
     const copyShareText = async () => {
-      await navigator.clipboard.writeText(shareText)
-      setCopied(true); setTimeout(() => setCopied(false), 2000)
+      try {
+        await navigator.clipboard.writeText(shareText)
+        setCopied(true); setTimeout(() => setCopied(false), 2000)
+      } catch {}
     }
 
-    // Compartir imagen + texto via navigator.share (WhatsApp nativo en mobile)
     const shareViaWhatsApp = async () => {
       const text = buildFullText('instagram')
       if (navigator.share) {
         try {
-          // Usar blob pre-computado para no expirar el gesto de usuario en iOS
           const blob = precomputedBlobRef.current
             ?? await (canvasRef.current
               ? (await renderCanvas(), await new Promise<Blob | null>(res =>
@@ -953,8 +933,124 @@ function CrearInner() {
 
     return (
       <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center p-4 pb-8">
-        {/* Canvas oculto para WhatsApp share */}
         <canvas ref={canvasRef} className="hidden" />
+        <div className="w-full max-w-lg">
+
+          {/* Header */}
+          <div className="flex items-center justify-between pt-4 mb-4">
+            <button onClick={() => setStep('preview')} className="text-gray-500 hover:text-gray-700 transition text-sm">← Volver al estilo</button>
+            <span className="text-xs text-gray-400">{rubro.emoji} {rubro.label}</span>
+          </div>
+
+          {/* Preview final (compacto) */}
+          {selectedPhoto && (
+            <div className="w-full rounded-2xl overflow-hidden shadow-lg mb-4 bg-gray-900" style={{ aspectRatio: '1/1' }}>
+              <div className="relative w-full h-full">
+                <img src={selectedPhoto} alt="foto"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ filter: currentFilter.css !== 'none' ? currentFilter.css : undefined }} />
+                <div className="absolute inset-0"
+                  style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.85) 100%)' }} />
+                {showLogo && agencyLogo && rubroId !== 'heladeria' && (
+                  <div className="absolute top-0 left-0 right-0 bg-black/55 flex items-center justify-center" style={{ height: '12%' }}>
+                    <img src={agencyLogo} alt="logo" className="h-full py-1 max-w-[260px] object-contain" />
+                  </div>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 text-center text-white"
+                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.8)', fontFamily: overlayFont }}>
+                  <p className="font-black break-words w-full leading-tight"
+                    style={{ fontSize: 'clamp(22px, 7.5vw, 48px)' }}>
+                    {result.line1?.toUpperCase()}
+                  </p>
+                  {result.line2 && (
+                    <p className="mt-1" style={{ fontSize: 'clamp(11px, 3.2vw, 19px)', fontWeight: 700, opacity: 0.88 }}>
+                      {result.line2}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Texto copiable con tabs IG / FB */}
+          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden mb-4 shadow-sm">
+            <div className="flex border-b border-gray-100">
+              {(['instagram', 'facebook'] as const).map(tab => (
+                <button key={tab} onClick={() => setActiveTab(tab)}
+                  className={`flex-1 py-3 text-sm font-bold transition border-b-2 flex items-center justify-center gap-2 ${
+                    activeTab === tab
+                      ? tab === 'instagram'
+                        ? 'text-[#dc2743] border-[#dc2743]'
+                        : 'text-[#1877F2] border-[#1877F2]'
+                      : 'text-gray-400 hover:text-gray-600 border-transparent'
+                  }`}>
+                  {tab === 'facebook'
+                    ? <><FacebookIcon className="w-4 h-4" /> Facebook</>
+                    : <><InstagramIcon className="w-4 h-4" /> Instagram</>}
+                </button>
+              ))}
+            </div>
+            <div className="p-4">
+              <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap mb-3">{shareText}</p>
+              <div className="flex items-center justify-end">
+                <button onClick={copyShareText}
+                  className="text-gray-500 hover:text-gray-700 text-xs font-semibold transition">
+                  {copied ? '✅ Copiado!' : '📋 Copiar texto'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Botones de compartir con LOGOS oficiales (SVG) */}
+          <div className="space-y-2 mb-3">
+            <button onClick={shareImage}
+              className="w-full bg-[#1877F2] hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2.5">
+              <FacebookIcon className="w-5 h-5 text-white" />
+              <span>Publicá en Facebook</span>
+            </button>
+            <button onClick={shareImage}
+              className="w-full text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2.5"
+              style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
+              <InstagramIcon className="w-5 h-5 text-white" />
+              <span>Publicá en Instagram</span>
+            </button>
+            <button onClick={shareViaWhatsApp}
+              className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2.5">
+              <WhatsAppIcon className="w-5 h-5 text-white" />
+              <span>Compartí por WhatsApp</span>
+            </button>
+          </div>
+
+          <p className="text-center text-gray-400 text-xs mb-4">
+            FB e IG: la imagen se descarga y el texto se copia — pegalo en la app junto con la foto
+          </p>
+
+          <button onClick={() => setStep('input')}
+            className="w-full text-center text-gray-400 text-sm hover:text-gray-600 transition py-2">
+            Empezar de nuevo
+          </button>
+
+          <StepGrid currentStep="publish" />
+        </div>
+      </div>
+    )
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RESULT STEP — Carrusel de fotos (una por vez, estilo PostViajes)
+  // ─────────────────────────────────────────────────────────────────────────
+  if (step === 'result' && result) {
+    const total = photoList.length
+    const current = photoList[photoIdx] || ''
+    const goPrev = () => setPhotoIdx(i => (i - 1 + total) % total)
+    const goNext = () => setPhotoIdx(i => (i + 1) % total)
+    const pickThisPhoto = () => {
+      setSelectedPhoto(current)
+      setStep('preview')
+    }
+
+    return (
+      <div className="min-h-screen bg-[#F5F7FA] flex flex-col items-center p-4 pb-8">
         <div className="w-full max-w-lg">
 
           {/* Header */}
@@ -963,131 +1059,62 @@ function CrearInner() {
             <span className="text-xs text-gray-400">{rubro.emoji} {rubro.label}</span>
           </div>
 
-          {/* ── Imagen siempre visible ── */}
-          {selectedPhoto && (
-            <div className="w-full rounded-2xl overflow-hidden shadow-lg mb-3 bg-[#FFFDF7] flex" style={{ aspectRatio: '1/1' }}>
-              {rubroId === 'vinoteca' ? (
-                <>
-                  <div className="relative overflow-hidden" style={{ width: '78%' }}>
-                    <img src={selectedPhoto} alt="foto"
-                      className="absolute inset-0 w-full h-full object-cover" />
-                  </div>
-                  <div className="flex flex-col items-center border-l border-gray-100" style={{ width: '22%', fontFamily: overlayFont }}>
-                    <div className="flex-1 flex items-center justify-center w-full overflow-hidden px-1">
-                      <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', textAlign: 'center' }}>
-                        <p className="font-black text-gray-900" style={{ fontSize: 'clamp(10px,3.5vw,22px)' }}>
-                          {result.line1?.toUpperCase()}
-                        </p>
-                        {result.line2 && (
-                          <p className="text-gray-400 italic mt-1" style={{ fontSize: 'clamp(7px,2vw,13px)' }}>
-                            {result.line2}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-900 flex items-center justify-center" style={{ height: '22%' }}>
-                      {agencyLogo ? (
-                        <img src={agencyLogo} alt="logo" className="max-w-full max-h-full object-contain p-1 opacity-90" />
-                      ) : (
-                        <span className="text-white text-xs opacity-50">🍷</span>
-                      )}
-                    </div>
-                  </div>
-                </>
+          {/* Título del post (para contexto) */}
+          <div className="bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-sm">
+            <p className="text-gray-400 text-[11px] font-semibold uppercase tracking-wider mb-1">Tu post</p>
+            <p className="text-gray-900 font-black text-lg leading-tight break-words">{result.line1}</p>
+            {result.line2 && <p className="text-gray-500 text-sm mt-0.5 italic">{result.line2}</p>}
+          </div>
+
+          {/* Carrusel — una foto por vez */}
+          <div className="mb-3">
+            <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">
+              Elegí la foto ({total > 0 ? photoIdx + 1 : 0} / {total})
+            </p>
+
+            <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-gray-200 shadow-lg">
+              {current ? (
+                <img src={current} alt={`foto ${photoIdx + 1}`}
+                  className="absolute inset-0 w-full h-full object-cover" />
               ) : (
-                <div className="relative w-full">
-                  <img src={selectedPhoto} alt="foto"
-                    className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute inset-0"
-                    style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.85) 100%)' }} />
-                  <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 text-center text-white">
-                    <p className="font-black text-2xl">{result.line1?.toUpperCase()}</p>
-                    {result.line2 && <p className="text-sm opacity-80">{result.line2}</p>}
-                  </div>
-                </div>
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">Sin fotos</div>
+              )}
+
+              {/* Flechas */}
+              {total > 1 && (
+                <>
+                  <button onClick={goPrev} aria-label="Anterior"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-gray-900 flex items-center justify-center shadow-lg text-xl font-bold transition active:scale-95">
+                    ‹
+                  </button>
+                  <button onClick={goNext} aria-label="Siguiente"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/90 hover:bg-white text-gray-900 flex items-center justify-center shadow-lg text-xl font-bold transition active:scale-95">
+                    ›
+                  </button>
+                </>
               )}
             </div>
-          )}
 
-          {/* ── Card principal: marca + info ── */}
-          <div className="bg-white rounded-2xl p-5 mb-3 shadow-sm border border-gray-100"
-            style={{ fontFamily: rubroId === 'vinoteca' ? overlayFont : undefined }}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-gray-900 font-black text-2xl leading-tight break-words">
-                  {result.line1}
-                </p>
-                {result.line2 && (
-                  <p className="text-gray-500 text-sm mt-1 italic">{result.line2}</p>
-                )}
-                {result.badge && (
-                  <p className="text-orange-500 font-bold text-base mt-1">{result.badge}</p>
-                )}
+            {/* Dots indicator */}
+            {total > 1 && (
+              <div className="flex justify-center gap-1.5 mt-3">
+                {photoList.map((_, i) => (
+                  <button key={i} onClick={() => setPhotoIdx(i)}
+                    aria-label={`Foto ${i + 1}`}
+                    className={`h-2 rounded-full transition-all ${i === photoIdx ? 'w-6 bg-orange-500' : 'w-2 bg-gray-300 hover:bg-gray-400'}`} />
+                ))}
               </div>
-              <button onClick={() => setStep('preview')}
-                className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
-                🎨 Editar estilo
-              </button>
-            </div>
+            )}
           </div>
 
-          {/* Notas del enólogo e historia ahora van integradas dentro del post */}
-
-          {/* ── Texto para copiar ── */}
-          <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden mb-3 shadow-sm">
-            {/* Tabs */}
-            <div className="flex border-b border-gray-100">
-              {(['instagram', 'facebook'] as const).map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-3 text-sm font-bold transition border-b-2 ${
-                    activeTab === tab
-                      ? tab === 'instagram'
-                        ? 'text-transparent bg-clip-text bg-gradient-to-r from-[#f09433] via-[#e6683c] to-[#dc2743] border-b-transparent bg-gradient-to-b from-pink-500 to-pink-500'
-                        : 'text-blue-600 border-blue-600'
-                      : 'text-gray-400 hover:text-gray-600 border-transparent'
-                  }`}>
-                  {tab === 'facebook' ? '👍 Facebook' : '📸 Instagram'}
-                </button>
-              ))}
-            </div>
-            {/* Texto */}
-            <div className="p-4">
-              <p className="text-gray-900 text-sm leading-relaxed whitespace-pre-wrap mb-3">
-                {shareText}
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400 text-xs">📋</span>
-                <button onClick={copyShareText}
-                  className="text-gray-500 hover:text-gray-700 text-xs font-semibold transition">
-                  {copied ? '✅ Copiado!' : 'Copiar'}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* ── Botones de compartir ── */}
-          <div className="space-y-2">
-            <button onClick={copyShareText}
-              className="w-full bg-[#1877F2] hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
-              👍 Publicá en Facebook
-            </button>
-            <button onClick={copyShareText}
-              className="w-full text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2"
-              style={{ background: 'linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}>
-              📸 Publicá en Instagram
-            </button>
-            <button onClick={shareViaWhatsApp}
-              className="w-full bg-[#25D366] hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl transition active:scale-95 flex items-center justify-center gap-2">
-              💬 Compartí por WhatsApp
-            </button>
-          </div>
-
-          <p className="text-center text-gray-500 text-xs mt-3">
-            FB e IG: texto copiado — pegalo en la app junto con la imagen
-          </p>
+          {/* CTA principal */}
+          <button onClick={pickThisPhoto} disabled={!current}
+            className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-black py-4 rounded-2xl text-base transition active:scale-95 shadow-lg">
+            Elegir esta foto →
+          </button>
 
           <button onClick={() => setStep('input')}
-            className="text-center text-gray-500 hover:text-gray-700 text-xs mt-4 transition underline">
+            className="w-full text-center text-gray-400 hover:text-gray-600 text-xs mt-4 transition underline">
             Empezar de nuevo
           </button>
 

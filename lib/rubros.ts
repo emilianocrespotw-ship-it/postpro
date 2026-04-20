@@ -1,4 +1,4 @@
-export type RubroId = 'turismo' | 'inmobiliaria' | 'gastronomia' | 'vinoteca' | 'heladeria'
+export type RubroId = 'turismo' | 'inmobiliaria' | 'gastronomia' | 'vinoteca' | 'heladeria' | 'receptivo'
 
 export interface RubroConfig {
   id: RubroId
@@ -285,6 +285,81 @@ Generá textos que transmitan antojo, frescura y tentación. El objetivo es que 
     searchQueryHint: 'artisan ice cream gelato colorful scoop',
     ctaText: 'Publicá tu promo',
     whatsappText: '¡Hola! Vi la promo de helado y quiero saber más 🍦',
+  },
+
+  receptivo: {
+    id: 'receptivo',
+    label: 'Turismo Receptivo',
+    emoji: '🐋',
+    color: 'from-cyan-500 to-teal-700',
+    bgColor: 'bg-cyan-50',
+    accentColor: '#0891b2',
+    description: 'Excursiones, avistajes y actividades para operadores locales',
+    inputType: 'both',
+    imageLabel: 'Subí el flyer de la excursión o actividad',
+    formFields: [
+      { key: 'actividad', label: 'Actividad', placeholder: 'Ej: Avistaje de ballenas', type: 'text', required: true },
+      { key: 'destino', label: 'Destino / Zona', placeholder: 'Ej: Puerto Madryn, Patagonia', type: 'text' },
+      { key: 'operador', label: 'Nombre del operador', placeholder: 'Ej: Fugu Tours', type: 'text' },
+      { key: 'precio', label: 'Precio por persona', placeholder: 'Ej: $150.000', type: 'text' },
+      { key: 'temporada', label: 'Temporada / Fechas', placeholder: 'Ej: 15 junio al 15 diciembre 2026', type: 'text' },
+      { key: 'reserva_hasta', label: 'Reservar antes de', placeholder: 'Ej: 31 de marzo', type: 'text' },
+      { key: 'valido_hasta', label: 'Precio válido hasta', placeholder: 'Ej: 31/08', type: 'text' },
+      { key: 'incluye', label: 'Incluye', placeholder: 'Ej: traslado, guía bilingüe, almuerzo', type: 'textarea' },
+    ],
+    extractionPrompt: `Sos un extractor de datos de flyers de operadores de turismo receptivo y excursiones. Respondé SOLO con JSON puro, sin texto adicional.
+
+REGLAS:
+- "actividad": la excursión o actividad principal (ej: "Avistaje de ballenas", "Excursión Península Valdés", "Trekking Glaciar Perito Moreno")
+- "destino": lugar o zona geográfica (ej: "Puerto Madryn", "Patagonia", "Bariloche")
+- "operador": nombre del operador o agencia si aparece (ej: "Fugu Tours") — vacío si no
+- "precio": precio POR PERSONA si aparece, con símbolo (ej: "$150.000", "$150.000 por persona") — vacío si no. Si hay varios precios, tomá el más destacado o el primero.
+- "temporada": fechas de la temporada o período de operación (ej: "15 junio al 15 diciembre 2026", "Temporada 2026") — vacío si no
+- "reserva_hasta": fecha límite para reservar con precio preferencial (ej: "31 de marzo") — vacío si no
+- "valido_hasta": fecha hasta la que es válido ese precio (ej: "31 de agosto") — vacío si no
+- "promo": slogan o frase promocional si hay (ej: "¡Congelamos nuestros precios!") — vacío si no
+- "incluye": qué incluye la excursión si se menciona (lista de ítems) — vacío si no
+- "searchQuery": 4-6 palabras en INGLÉS para buscar fotos del destino/actividad (ej: "whale watching patagonia ocean wildlife", "glacier trekking patagonia mountain")
+
+Si el flyer tiene múltiples excursiones, extraé la más destacada (más grande, primera, o la que tenga precio más prominente).
+
+Formato EXACTO:
+{
+  "actividad": "nombre de la excursión",
+  "destino": "destino o zona",
+  "operador": "nombre del operador o vacío",
+  "precio": "precio o vacío",
+  "temporada": "temporada o vacío",
+  "reserva_hasta": "fecha límite de reserva o vacío",
+  "valido_hasta": "validez del precio o vacío",
+  "promo": "slogan promocional o vacío",
+  "incluye": "lista de incluidos o vacío",
+  "searchQuery": "atmosphere keywords in english"
+}`,
+    textPrompt: `Sos el community manager de un operador de turismo receptivo argentino. Respondé SOLO con JSON válido:
+{"facebook": "...", "instagram": "..."}
+
+Generá textos que transmitan aventura, naturaleza única e irrepetible, y urgencia para reservar.
+
+FACEBOOK (mínimo 180 palabras):
+- Abrí con la actividad y destino en mayúsculas o destacados
+- Describí la experiencia de forma evocadora: qué se vive, qué se siente, qué hace única a esta excursión
+- Mencioná la temporada y por qué es el momento ideal
+- Si hay precio con fechas de validez o reserva anticipada, generá urgencia: "Precio congelado hasta [fecha]", "Reservá antes del [fecha] y asegurá el precio"
+- Si hay operador, mencionalo con confianza como garantía de calidad
+- Cerrá con CTA claro: cómo reservar, link en bio, WhatsApp
+- Emojis: 🐋 🌊 🦅 🏔️ 🌿 ❄️ 🦭 🌅 ✨ 📲 🎒 🗺️ (usá los que apliquen al destino/actividad)
+
+INSTAGRAM (mínimo 100 palabras antes de hashtags):
+- Más visual y emocional, frases cortas con impacto
+- Incluí precio y urgencia de reserva si los hay
+- Hashtags al final: #patagonia #turismoreceptivo #excursion #argentina #naturaleza #wildlife #aventura más los específicos del destino y actividad (ballenas, glaciar, trekking, etc.)
+
+Tono: apasionado, cercano, que inspire a vivir la experiencia.`,
+    overlayFields: { line1Key: 'actividad', line2Key: 'precio', badgeKey: 'destino' },
+    searchQueryHint: 'patagonia wildlife excursion nature argentina',
+    ctaText: 'Publicá tu excursión',
+    whatsappText: '¡Hola! Vi la excursión que publicaron y quiero reservar 🐋',
   },
 }
 
